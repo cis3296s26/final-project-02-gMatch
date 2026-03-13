@@ -1,28 +1,29 @@
-# Project Name
-Put here a short paragraph describing your project. 
-Adding an screenshot or a mockup of your application in action would be nice.  
+# Group Project Matching Tool
 
-![This is a screenshot.](images.png)
-# How to run
-Provide here instructions on how to use your application.   
-- Download the latest binary from the Release section on the right on GitHub.  
-- On the command line uncompress using
-```
-tar -xzf  
-```
-- On the command line run with
-```
-./hello
-```
-- You will see Hello World! on your terminal. 
+CIS 3296- gMatch
 
-# How to contribute
-Follow this project board to know the latest status of the project: [http://...]([http://...])  
+## Purpose
+This repository is a **proof of concept** demonstrating that the required tools
+(Node.js, Express, MongoDB, Mongoose) compile and run together.
 
-### How to build
-- Use this github repository: ... 
-- Specify what branch to use for a more stable release or for cutting edge development.  
-- Use InteliJ 11
-- Specify additional library to download if needed 
-- What file and target to compile and run. 
-- What is expected to happen when the app start. 
+The code is intentionally minimal and suitable for a PoC.
+
+## Environment
+- OS: macOS / Windows 11 / Ubuntu 22.04+
+- Runtime: Node.js 18+
+- Database: MongoDB (local or Atlas)
+
+## How to Run
+```bash
+npm install
+npm start
+```
+
+Server runs at:
+http://localhost:3000
+
+## Test Endpoint
+```bash
+curl http://localhost:3000/
+curl http://localhost:3000/health
+```
