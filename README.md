@@ -17,8 +17,6 @@ Express
 MongoDB
 Mongoose
 
-The code is intentionally minimal and suitable for a PoC.
-
 ## Project Board
 https://github.com/orgs/cis3296s26/projects/32/views/1
 
