@@ -1,5 +1,7 @@
 const express = require("express");
 const cors = require("cors");
+const mongoose = require("mongoose");
+const connectDB = require("./config/db");
 
 require("dotenv").config();
 
@@ -12,14 +14,24 @@ app.use(express.urlencoded({ extended: true }));
 
 // --------------- Routes ---------------
 app.get("/api/health", (_req, res) => {
-  res.json({ ok: true, timestamp: new Date().toISOString() });
+  const dbStates = ["disconnected", "connected", "connecting", "disconnecting"];
+  res.json({
+    ok: true,
+    timestamp: new Date().toISOString(),
+    db: dbStates[mongoose.connection.readyState] || "unknown",
+  });
 });
 
 // --------------- Start ---------------
 const PORT = process.env.PORT || 5001;
 
-app.listen(PORT, () => {
-  console.log(`[gMatch Server] Running on http://localhost:${PORT}`);
-});
+async function start() {
+  await connectDB();
+  app.listen(PORT, () => {
+    console.log(`[gMatch Server] Running on http://localhost:${PORT}`);
+  });
+}
+
+start();
 
 module.exports = app;
