@@ -27,6 +27,11 @@ Thumbs.db
 # IDE
 .vscode
 .idea
+.history
+
+
+yarn-error.log
+yarn.lock
 
 # Personal Documentation
 Week1.md 
