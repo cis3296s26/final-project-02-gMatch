@@ -12,6 +12,19 @@ From the instructor’s perspective, the system provides tools to generate, revi
 Overall, the vision of gMatch is to create a simple, transparent, and extensible tool that improves collaboration in project-based courses while demonstrating sound software design principles.
 
 ## Tech Stack
+Node.js
+Express
+MongoDB
+Mongoose
+
+## Project Board
+https://github.com/orgs/cis3296s26/projects/32/views/1
+
+From the instructor’s perspective, the system provides tools to generate, review, and adjust teams before publishing the final assignments. By separating the team formation logic into interchangeable strategies, the system also allows instructors to choose the grouping approach that best fits the needs of their course.
+
+Overall, the vision of gMatch is to create a simple, transparent, and extensible tool that improves collaboration in project-based courses while demonstrating sound software design principles.
+
+## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
