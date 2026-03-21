@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
+import { useSession, signOut } from "next-auth/react";
 import { Users, LogOut, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 export default function Navbar({ variant = "landing" }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { data: session } = useSession();
 
   const isDashboard = variant === "dashboard";
 
@@ -25,26 +28,38 @@ export default function Navbar({ variant = "landing" }) {
 
         {/* Desktop Nav */}
         <div className="hidden items-center gap-3 md:flex">
-          {isDashboard ? (
+          {isDashboard && session?.user ? (
             <>
-              {/* User avatar placeholder */}
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
-                U
-              </div>
-              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground">
+              {session.user.image ? (
+                <Image
+                  src={session.user.image}
+                  alt={session.user.name || "User"}
+                  width={32}
+                  height={32}
+                  className="rounded-full"
+                />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+                  {(session.user.name || "U").charAt(0).toUpperCase()}
+                </div>
+              )}
+              <span className="text-sm font-medium">{session.user.name}</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-1.5 text-muted-foreground"
+                onClick={() => signOut({ callbackUrl: "/" })}
+              >
                 <LogOut className="h-4 w-4" />
                 Sign Out
               </Button>
             </>
           ) : (
             <>
-              <Link href="#features">
-                <Button variant="ghost" size="sm">Features</Button>
-              </Link>
-              <Link href="/organizer/dashboard">
+              <Link href="/login">
                 <Button variant="outline" size="sm">Sign In</Button>
               </Link>
-              <Link href="/organizer/dashboard">
+              <Link href="/login">
                 <Button size="sm">Get Started</Button>
               </Link>
             </>
@@ -64,20 +79,40 @@ export default function Navbar({ variant = "landing" }) {
       {mobileOpen && (
         <div className="border-t border-border/60 bg-background px-4 pb-4 pt-2 md:hidden">
           <div className="flex flex-col gap-2">
-            {isDashboard ? (
-              <Button variant="ghost" size="sm" className="justify-start gap-1.5 text-muted-foreground">
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </Button>
+            {isDashboard && session?.user ? (
+              <>
+                <div className="flex items-center gap-2 px-2 py-1.5">
+                  {session.user.image ? (
+                    <Image
+                      src={session.user.image}
+                      alt={session.user.name || "User"}
+                      width={24}
+                      height={24}
+                      className="rounded-full"
+                    />
+                  ) : (
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full bg-primary/10 text-xs font-semibold text-primary">
+                      {(session.user.name || "U").charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                  <span className="text-sm font-medium">{session.user.name}</span>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="justify-start gap-1.5 text-muted-foreground"
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                >
+                  <LogOut className="h-4 w-4" />
+                  Sign Out
+                </Button>
+              </>
             ) : (
               <>
-                <Link href="#features" onClick={() => setMobileOpen(false)}>
-                  <Button variant="ghost" size="sm" className="w-full justify-start">Features</Button>
-                </Link>
-                <Link href="/organizer/dashboard">
+                <Link href="/login" onClick={() => setMobileOpen(false)}>
                   <Button variant="outline" size="sm" className="w-full">Sign In</Button>
                 </Link>
-                <Link href="/organizer/dashboard">
+                <Link href="/login" onClick={() => setMobileOpen(false)}>
                   <Button size="sm" className="w-full">Get Started</Button>
                 </Link>
               </>

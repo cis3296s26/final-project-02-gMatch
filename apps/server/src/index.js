@@ -13,6 +13,9 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // --------------- Routes ---------------
+const authRoutes = require("./routes/auth");
+app.use("/api/auth", authRoutes);
+
 app.get("/api/health", (_req, res) => {
   const dbStates = ["disconnected", "connected", "connecting", "disconnecting"];
   res.json({

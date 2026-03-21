@@ -68,13 +68,13 @@ export default function LandingPage() {
             </p>
 
             <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <Link href="/organizer/dashboard">
+              <Link href="/login">
                 <Button size="lg" className="h-12 gap-2 px-6 text-base font-semibold">
                   Create a Workspace
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/participant/dashboard">
+              <Link href="/login">
                 <Button variant="outline" size="lg" className="h-12 gap-2 px-6 text-base font-semibold">
                   Join a Team
                   <Users className="h-4 w-4" />
