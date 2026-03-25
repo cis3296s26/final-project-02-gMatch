@@ -199,7 +199,7 @@ return (
               fontSize: "14px"
             }}
           >
-            Select a different strategy and regenerate teams to compare results.
+            Select a strategy to generate teams. To regenerate them, choose a different strategy.
           </p>
             </div>
 
@@ -384,7 +384,7 @@ return (
           <p style={{ color: "#374151" }}>
             <strong>Team Size:</strong> {minSize} - {maxSize}
           </p>
-          
+
           <p style={{ color: "#374151" }}>
             <strong>Strategy:</strong>{" "}
             {strategy === "WeightedHybridStrategy"
