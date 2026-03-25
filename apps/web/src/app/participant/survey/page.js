@@ -1,6 +1,6 @@
 "use client";
 
-import link from "next/link"
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -11,9 +11,15 @@ export default function SurveyPage() {
     const [skills, setSkills] = useState("");
     const [availability, setAvailability] = useState("");
     const [submitted, setSubmitted] = useState(false);
+    //to make the survey dynamic (concept)
+    const questions = [
+      { id: "name", label: "Name", type: "text" },
+      { id: "skills", label: "Skills", type: "skills" },
+      { id: "availability", label: "Availability", type: "availability" },
+    ];
 
     function handleSubmit(e){
-        e.prventDefault();
+        e.preventDefault();
 
         console.log({ name, skills, availability });
 
@@ -33,7 +39,7 @@ export default function SurveyPage() {
     );
   }
 
-    return (
+  return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
@@ -45,35 +51,41 @@ export default function SurveyPage() {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <p className="text-sm font-medium mb-1">Name</p>
-                <input
-                  className="w-full border rounded p-2"
-                  placeholder="Your Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
+              {questions.map((q) => (
+                <div key={q.id}>
+                  <p className="text-sm font-medium mb-1">{q.label}</p>
 
-              <div>
-                <p className="text-sm font-medium mb-1">Skills</p>
-                <input
-                  className="w-full border rounded p-2"
-                  placeholder="JavaScript, Python..."
-                  value={skills}
-                  onChange={(e) => setSkills(e.target.value)}
-                />
-              </div>
+                  {/* TEXT */}
+                  {q.type === "text" && (
+                    <input
+                      className="w-full border rounded p-2"
+                      placeholder={q.label}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  )}
 
-              <div>
-                <p className="text-sm font-medium mb-1">Availability</p>
-                <textarea
-                  className="w-full border rounded p-2"
-                  placeholder="Days and times..."
-                  value={availability}
-                  onChange={(e) => setAvailability(e.target.value)}
-                />
-              </div>
+                  {/* SKILLS */}
+                  {q.type === "skills" && (
+                    <input
+                      className="w-full border rounded p-2"
+                      placeholder="JavaScript, Python..."
+                      value={skills}
+                      onChange={(e) => setSkills(e.target.value)}
+                    />
+                  )}
+
+                  {/* AVAILABILITY */}
+                  {q.type === "availability" && (
+                    <textarea
+                      className="w-full border rounded p-2"
+                      placeholder="Days and times..."
+                      value={availability}
+                      onChange={(e) => setAvailability(e.target.value)}
+                    />
+                  )}
+                </div>
+              ))}
 
               <Button type="submit" className="w-full">
                 Submit Survey
