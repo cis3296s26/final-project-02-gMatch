@@ -5,12 +5,16 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css"
 
 export default function SurveyPage() {
     const [name, setName] = useState("");
     const [skills, setSkills] = useState([]);
     const [skillInput, setSkillInput] = useState("");
-    const [availability, setAvailability] = useState("");
+    const [date, setDate] = useState(new Date());
+    const [time, setTime] = useState("");
+    const [availabilityList, setAvailabilityList] = useState([]);
     const [submitted, setSubmitted] = useState(false);
 
     //to make the survey dynamic (concept)
@@ -23,9 +27,13 @@ export default function SurveyPage() {
     function handleSubmit(e){
         e.preventDefault();
 
-        console.log({ name, skills, availability });
+        console.log({ name, skills, availability: availabilityList });
 
-        setSubmitted(true);
+        if (name != "" && skills != "" && availabilityList != ""){
+          setSubmitted(true); 
+        } else {
+          alert("Please Answer All Questions");
+        }
     }
 
     function handleAddSkill(e) {
@@ -39,6 +47,18 @@ export default function SurveyPage() {
           setSkillInput("");
         }
       }
+    }
+
+    function addAvailability() {
+      if (!time) return;
+
+      const newEntry = `${date.toDateString()} at ${time}`;
+
+      if (!availabilityList.includes(newEntry)) {
+        setAvailabilityList([...availabilityList, newEntry]);
+      }
+
+      setTime("");
     }
 
     function removeSkill(index) {
@@ -116,16 +136,48 @@ export default function SurveyPage() {
 
                   {/* AVAILABILITY */}
                   {q.type === "availability" && (
-                    <textarea
-                      className="w-full border rounded p-2"
-                      placeholder="Days and times..."
-                      value={availability}
-                      onChange={(e) => setAvailability(e.target.value)}
-                    />
+                    <div className="space-y-3">
+                      {/* Calendar */}
+                      <Calendar onChange={setDate} value={date} />
+
+                      {/* Time input */}
+                      <input
+                        type="time"
+                        className="w-full border rounded p-2"
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                      />
+
+                      {/* Add button */}
+                      <Button type="button" onClick={addAvailability}>
+                        Add Availability
+                      </Button>
+
+                      {/* Display selected times */}
+                      <div className="space-y-2">
+                        {availabilityList.map((item, index) => (
+                          <div
+                            key={index}
+                            className="border rounded p-2 text-sm flex justify-between"
+                          >
+                            {item}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setAvailabilityList(
+                                  availabilityList.filter((_, i) => i !== index)
+                                )
+                              }
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               ))}
-
               <Button type="submit" className="w-full">
                 Submit Survey
               </Button>
