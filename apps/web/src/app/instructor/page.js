@@ -8,7 +8,9 @@ export default function DashboardPage() {
   const [maxSize, setMaxSize] = useState(4);
   const [strategy, setStrategy] = useState("WeightedHybridStrategy");
   const [teams, setTeams] = useState([]);
-  
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [lastGeneratedStrategy, setLastGeneratedStrategy] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
 
   const [questions, setQuestions] = useState([
     "What days are you available?",
@@ -27,11 +29,17 @@ export default function DashboardPage() {
 
   const generateTeams = () => {
     const strategyInstance = StrategyFactory.create(strategy);
- 
+    
     // using minSize for now
     const generatedTeams = strategyInstance.generate(students, minSize);
+    const actionLabel = hasGenerated ? "Regenerated" : "Generated";
 
     setTeams(generatedTeams);
+    setHasGenerated(true);
+    setLastGeneratedStrategy(strategy);
+    setStatusMessage(
+      `Teams ${actionLabel} using ${formatStrategyName(strategy)}.`
+    );
   };
 
   const addQuestion = () => {
@@ -182,7 +190,18 @@ return (
               Skill Balanced
             </option>
           </select>
-        </div>
+          
+          <p 
+            style={{
+              marginTop: "12px",
+              marginBottom: 0,
+              color: "#6b7280",
+              fontSize: "14px"
+            }}
+          >
+            Select a different strategy and regenerate teams to compare results.
+          </p>
+            </div>
 
         {/* Survey Questions */}
         <div
@@ -274,6 +293,24 @@ return (
           >
             Generate Teams
           </button>
+          
+          {hasGenerated && (
+            <button
+              onClick={generateTeams}
+              style={{
+                padding: "12px 18px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                backgroundColor: "#ffffff",
+                color: "#111827",
+                fontWeight: "bold",
+                cursor: "pointer",
+                marginLeft: "10px"
+              }}
+            >
+               Regenerate Teams
+             </button>
+          )}    
         </div>
 
         {/* Results */}
@@ -289,6 +326,26 @@ return (
           <h3 style={{ marginTop: 0, marginBottom: "16px", color: "#111827" }}>
             Generated Teams
           </h3>
+
+          {statusMessage && (
+            <p
+              style={{
+                marginTop: "0",
+                marginBottom: "12px",
+                color: "#2563eb",
+                fontWeight: "bold"
+              }}
+            >
+              {statusMessage}
+            </p>
+          )}
+
+          {hasGenerated && (
+            <p style= {{ marginTop: 0, marginBottom: "16px", color: "#374151" }}>
+              <strong>Last Generated Using:</strong>{" "}
+              {formatStrategyName(lastGeneratedStrategy)}
+            </p>  
+          )}
 
           {teams.length === 0 && (
             <p style={{ color: "#6b7280" }}>No teams generated yet.</p>
