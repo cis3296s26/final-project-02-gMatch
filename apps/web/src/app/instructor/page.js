@@ -38,9 +38,7 @@ export default function DashboardPage() {
     setTeams(generatedTeams);
     setHasGenerated(true);
     setLastGeneratedStrategy(strategy);
-    setStatusMessage(
-      `Teams ${actionLabel} using ${formatStrategyName(strategy)}.`
-    );
+    setStatusMessage(`Teams ${actionLabel} successfully.`);
   };
 
   const addQuestion = () => {
