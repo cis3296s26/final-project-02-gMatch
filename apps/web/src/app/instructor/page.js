@@ -221,7 +221,7 @@ return (
             }}
           >
 
-            Use the selected strategy when generating teams for the first time. To regenerate teams, choose a different strategy and click Regenerate Teams.
+            Use a provided matching strategy when generating teams for the first time. To regenerate teams, choose a different strategy and click Regenerate Teams.
           </p>
         )}
       </div>
