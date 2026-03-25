@@ -386,7 +386,14 @@ return (
           </p>
           
           <p style={{ color: "#374151" }}>
-            <strong>Strategy:</strong> {formatStrategyName(strategy)}
+            <strong>Strategy:</strong>{" "}
+            {strategy === "WeightedHybridStrategy"
+              ? "Weighted Hybrid"
+              : strategy === "AvailabilityOnlyStrategy"
+              ? "Availability Only"
+              : strategy === "SkillBalancedStrategy"
+              ? "Skill Balanced"
+              : strategy}
           </p>
 
           <p style={{ color: "#374151", marginBottom: "8px" }}>
