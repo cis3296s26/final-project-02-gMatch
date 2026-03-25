@@ -33,7 +33,7 @@ export default function DashboardPage() {
     
     // using minSize for now
     const generatedTeams = strategyInstance.generate(students, minSize);
-    const actionLabel = hasGenerated ? "Regenerated" : "Generated";
+    const actionLabel = hasGenerated ? "regenerated" : "generated";
 
     setTeams(generatedTeams);
     setHasGenerated(true);
