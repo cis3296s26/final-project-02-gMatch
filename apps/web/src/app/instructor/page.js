@@ -384,15 +384,9 @@ return (
           <p style={{ color: "#374151" }}>
             <strong>Team Size:</strong> {minSize} - {maxSize}
           </p>
+          
           <p style={{ color: "#374151" }}>
-            <strong>Strategy:</strong>{" "}
-            {strategy === "WeightedHybridStrategy"
-              ? "Weighted Hybrid"
-              : strategy === "AvailabilityOnlyStrategy"
-              ? "Availability Only"
-              : strategy === "SkillBalancedStrategy"
-              ? "Skill Balanced"
-              : strategy}
+            <strong>Strategy:</strong> {formatStrategyName(strategy)}
           </p>
 
           <p style={{ color: "#374151", marginBottom: "8px" }}>
