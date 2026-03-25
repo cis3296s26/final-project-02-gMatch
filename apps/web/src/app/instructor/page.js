@@ -11,6 +11,7 @@ export default function DashboardPage() {
   const [hasGenerated, setHasGenerated] = useState(false);
   const [lastGeneratedStrategy, setLastGeneratedStrategy] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
+  const [showStrategyHelp, setShowStrategyHelp] = useState(false);
 
   const [questions, setQuestions] = useState([
     "What days are you available?",
@@ -191,16 +192,38 @@ return (
             </option>
           </select>
           
-          <p 
+        {/* Strategy help toggle */}
+        <button
+          type="button"
+          onClick={() => setShowStrategyHelp(!showStrategyHelp)}
+          style={{
+            marginTop: "12px",
+            padding: 0,
+            border: "none",
+            background: "none",
+            color: "#2563eb",
+            fontSize: "14px",
+            cursor: "pointer",
+            textDecoration: "underline"
+          }}
+        >
+          {showStrategyHelp ? "Hide details" : "Learn more"}
+        </button>
+
+        {showStrategyHelp && (
+          <p
             style={{
-              marginTop: "12px",
+              marginTop: "10px",
               marginBottom: 0,
               color: "#6b7280",
-              fontSize: "14px"
+              fontSize: "14px",
+              lineHeight: "1.5"
             }}
           >
-            Select a strategy to generate teams. To regenerate them, choose a different strategy.
+
+            Use the selected strategy when generating teams for the first time. To regenerate teams, choose a different strategy and click Regenerate Teams.
           </p>
+        )}
             </div>
 
         {/* Survey Questions */}
