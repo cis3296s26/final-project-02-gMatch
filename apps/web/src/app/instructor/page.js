@@ -44,7 +44,6 @@ export default function DashboardPage() {
     setQuestions(questions.filter((_, i) => i !== index));
   };
 
-
   const formatStrategyName = (value) => {
     if (value === "WeightedHybridStrategy") return "Weighted Hybrid";
     if (value === "AvailabilityOnlyStrategy") return "Availability Only";
