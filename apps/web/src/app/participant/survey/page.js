@@ -8,9 +8,11 @@ import Navbar from "@/components/Navbar";
 
 export default function SurveyPage() {
     const [name, setName] = useState("");
-    const [skills, setSkills] = useState("");
+    const [skills, setSkills] = useState([]);
+    const [skillInput, setSkillInput] = useState("");
     const [availability, setAvailability] = useState("");
     const [submitted, setSubmitted] = useState(false);
+
     //to make the survey dynamic (concept)
     const questions = [
       { id: "name", label: "Name", type: "text" },
@@ -24,6 +26,23 @@ export default function SurveyPage() {
         console.log({ name, skills, availability });
 
         setSubmitted(true);
+    }
+
+    function handleAddSkill(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+
+        const newSkill = skillInput.trim();
+
+        if (newSkill !== "" && !skills.includes(newSkill)) {
+          setSkills([...skills, newSkill]);
+          setSkillInput("");
+        }
+      }
+    }
+
+    function removeSkill(index) {
+      setSkills(skills.filter((_, i) => i !== index));
     }
 
     if (submitted) {
@@ -67,12 +86,32 @@ export default function SurveyPage() {
 
                   {/* SKILLS */}
                   {q.type === "skills" && (
-                    <input
-                      className="w-full border rounded p-2"
-                      placeholder="JavaScript, Python..."
-                      value={skills}
-                      onChange={(e) => setSkills(e.target.value)}
-                    />
+                    <div>
+                      <input
+                        className="w-full border rounded p-2"
+                        placeholder="Type a skill and press Enter"
+                        value={skillInput}
+                        onChange={(e) => setSkillInput(e.target.value)}
+                        onKeyDown={handleAddSkill}
+                      />
+
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {skills.map((skill, index) => (
+                          <div
+                            key={index}
+                            className="bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-2"
+                          >
+                            {skill}
+                            <button
+                              type="button"
+                              onClick={() => removeSkill(index)}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
 
                   {/* AVAILABILITY */}
