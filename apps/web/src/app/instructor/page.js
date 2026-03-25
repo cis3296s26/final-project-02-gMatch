@@ -8,6 +8,7 @@ export default function DashboardPage() {
   const [maxSize, setMaxSize] = useState(4);
   const [strategy, setStrategy] = useState("WeightedHybridStrategy");
   const [teams, setTeams] = useState([]);
+  
 
   const [questions, setQuestions] = useState([
     "What days are you available?",
