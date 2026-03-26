@@ -1,9 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import StrategyFactory from "@/services/StrategyFactory";
 
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+
 export default function DashboardPage() {
+  const { data: session } = useSession();
+
   const [minSize, setMinSize] = useState(2);
   const [maxSize, setMaxSize] = useState(4);
   const [strategy, setStrategy] = useState("WeightedHybridStrategy");
@@ -17,10 +23,16 @@ export default function DashboardPage() {
     "What days are you available?",
     "What skills do you have?"
   ]);
-
   const [newQuestion, setNewQuestion] = useState("");
 
-  // Demo student data (same as before)
+  // Workspace state
+  const [workspaceName, setWorkspaceName] = useState("");
+  const [workspaceMaxGroupSize, setWorkspaceMaxGroupSize] = useState(4);
+  const [workspaces, setWorkspaces] = useState([]);
+  const [activeWorkspaceId, setActiveWorkspaceId] = useState(null);
+  const [workspaceMessage, setWorkspaceMessage] = useState("");
+  const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
+
   const students = [
     { name: "Alice", availability: ["Mon", "Wed"], skills: ["Java"] },
     { name: "Brian", availability: ["Mon"], skills: ["UI"] },
@@ -28,17 +40,156 @@ export default function DashboardPage() {
     { name: "David", availability: ["Mon", "Wed"], skills: ["Beginner"] }
   ];
 
+  const localStorageKey = useMemo(() => {
+    const email = session?.user?.email || "guest";
+    return `gmatch_workspaces_${email}`;
+  }, [session]);
+
+  useEffect(() => {
+    loadWorkspaces();
+  }, [session]);
+
+  const loadWorkspaces = async () => {
+    setWorkspaceMessage("");
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/workspaces`, {
+        credentials: "include"
+      });
+
+      if (!response.ok) {
+        throw new Error("Backend unavailable");
+      }
+
+      const data = await response.json();
+      const fetchedWorkspaces = data.workspaces || [];
+
+      setWorkspaces(fetchedWorkspaces);
+
+      if (fetchedWorkspaces.length > 0 && !activeWorkspaceId) {
+        setActiveWorkspaceId(fetchedWorkspaces[0]._id);
+      }
+    } catch (_error) {
+      const saved = localStorage.getItem(localStorageKey);
+      const parsed = saved ? JSON.parse(saved) : [];
+
+      setWorkspaces(parsed);
+
+      if (parsed.length > 0 && !activeWorkspaceId) {
+        setActiveWorkspaceId(parsed[0]._id);
+      }
+    }
+  };
+
+  const persistLocalWorkspaces = (updatedWorkspaces) => {
+    localStorage.setItem(localStorageKey, JSON.stringify(updatedWorkspaces));
+    setWorkspaces(updatedWorkspaces);
+
+    if (updatedWorkspaces.length > 0) {
+      setActiveWorkspaceId(updatedWorkspaces[updatedWorkspaces.length - 1]._id);
+    }
+  };
+
+  const generateLocalWorkspaceCode = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    let code = "";
+
+    for (let i = 0; i < 6; i += 1) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+
+    return code;
+  };
+
+  const createWorkspace = async () => {
+    setWorkspaceMessage("");
+
+    const trimmedName = workspaceName.trim();
+
+    if (!trimmedName) {
+      setWorkspaceMessage("Please enter a workspace name.");
+      return;
+    }
+
+    if (workspaceMaxGroupSize < 2) {
+      setWorkspaceMessage("Max group size must be at least 2.");
+      return;
+    }
+
+    setIsCreatingWorkspace(true);
+
+    const payload = {
+      name: trimmedName,
+      teamSize: workspaceMaxGroupSize
+    };
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/workspaces`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        throw new Error("Could not save workspace to backend");
+      }
+
+      const data = await response.json();
+      const newWorkspace = data.workspace;
+
+      const updatedWorkspaces = [...workspaces, newWorkspace];
+      setWorkspaces(updatedWorkspaces);
+      setActiveWorkspaceId(newWorkspace._id);
+
+      setWorkspaceMessage(
+        `Workspace created. Code: ${newWorkspace.inviteCode}`
+      );
+      setWorkspaceName("");
+      setWorkspaceMaxGroupSize(4);
+    } catch (_error) {
+      const localWorkspace = {
+        _id: `${Date.now()}`,
+        name: trimmedName,
+        teamSize: workspaceMaxGroupSize,
+        inviteCode: generateLocalWorkspaceCode(),
+        createdAt: new Date().toISOString()
+      };
+
+      const updatedWorkspaces = [...workspaces, localWorkspace];
+      persistLocalWorkspaces(updatedWorkspaces);
+
+      setWorkspaceMessage(
+        `Workspace created locally. Code: ${localWorkspace.inviteCode}`
+      );
+      setWorkspaceName("");
+      setWorkspaceMaxGroupSize(4);
+    } finally {
+      setIsCreatingWorkspace(false);
+    }
+  };
+
+  const activeWorkspace =
+    workspaces.find((workspace) => workspace._id === activeWorkspaceId) || null;
+
   const generateTeams = () => {
     const strategyInstance = StrategyFactory.create(strategy);
-    
-    // using minSize for now
     const generatedTeams = strategyInstance.generate(students, minSize);
     const actionLabel = hasGenerated ? "regenerated" : "generated";
 
     setTeams(generatedTeams);
     setHasGenerated(true);
     setLastGeneratedStrategy(strategy);
-    setStatusMessage(`Teams ${actionLabel} successfully.`);
+
+    if (activeWorkspace) {
+      setStatusMessage(
+        `Teams ${actionLabel} successfully for "${activeWorkspace.name}".`
+      );
+    } else {
+      setStatusMessage(`Teams ${actionLabel} successfully.`);
+    }
   };
 
   const addQuestion = () => {
@@ -57,9 +208,9 @@ export default function DashboardPage() {
     if (value === "AvailabilityOnlyStrategy") return "Availability Only";
     if (value === "SkillBalancedStrategy") return "Skill Balanced";
     return value;
-  }; 
+  };
 
-return (
+  return (
     <div
       style={{
         padding: "40px",
@@ -83,6 +234,189 @@ return (
         >
           Instructor Dashboard
         </h2>
+
+        {/* Create Workspace */}
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            padding: "24px",
+            borderRadius: "12px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            marginBottom: "20px"
+          }}
+        >
+          <h3 style={{ marginTop: 0, marginBottom: "16px", color: "#111827" }}>
+            Create Workspace
+          </h3>
+
+          <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+            <div style={{ flex: 2, minWidth: "240px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "bold",
+                  color: "#374151"
+                }}
+              >
+                Workspace Name
+              </label>
+              <input
+                type="text"
+                value={workspaceName}
+                onChange={(e) => setWorkspaceName(e.target.value)}
+                placeholder="Ex: CIS 4398 Section 1"
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #d1d5db",
+                  fontSize: "14px",
+                  boxSizing: "border-box"
+                }}
+              />
+            </div>
+
+            <div style={{ flex: 1, minWidth: "180px" }}>
+              <label
+                style={{
+                  display: "block",
+                  marginBottom: "8px",
+                  fontWeight: "bold",
+                  color: "#374151"
+                }}
+              >
+                Max Group Size
+              </label>
+              <input
+                type="number"
+                min="2"
+                value={workspaceMaxGroupSize}
+                onChange={(e) =>
+                  setWorkspaceMaxGroupSize(Number(e.target.value))
+                }
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  borderRadius: "8px",
+                  border: "1px solid #d1d5db",
+                  fontSize: "14px",
+                  boxSizing: "border-box"
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ marginTop: "16px" }}>
+            <button
+              onClick={createWorkspace}
+              disabled={isCreatingWorkspace}
+              style={{
+                padding: "12px 18px",
+                border: "none",
+                borderRadius: "8px",
+                backgroundColor: "#2563eb",
+                color: "#ffffff",
+                fontWeight: "bold",
+                cursor: isCreatingWorkspace ? "not-allowed" : "pointer",
+                opacity: isCreatingWorkspace ? 0.7 : 1
+              }}
+            >
+              {isCreatingWorkspace ? "Creating..." : "Create Workspace"}
+            </button>
+          </div>
+
+          {workspaceMessage && (
+            <p
+              style={{
+                marginTop: "14px",
+                marginBottom: 0,
+                color: "#2563eb",
+                fontWeight: "bold"
+              }}
+            >
+              {workspaceMessage}
+            </p>
+          )}
+        </div>
+
+        {/* Workspace Tabs */}
+        <div
+          style={{
+            backgroundColor: "#ffffff",
+            padding: "24px",
+            borderRadius: "12px",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+            marginBottom: "20px"
+          }}
+        >
+          <h3 style={{ marginTop: 0, marginBottom: "16px", color: "#111827" }}>
+            Workspaces
+          </h3>
+
+          {workspaces.length === 0 ? (
+            <p style={{ color: "#6b7280", margin: 0 }}>
+              No workspaces yet. Create one to separate classes into saved
+              workspaces.
+            </p>
+          ) : (
+            <>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "10px",
+                  marginBottom: "16px"
+                }}
+              >
+                {workspaces.map((workspace) => {
+                  const isActive = workspace._id === activeWorkspaceId;
+
+                  return (
+                    <button
+                      key={workspace._id}
+                      onClick={() => setActiveWorkspaceId(workspace._id)}
+                      style={{
+                        padding: "10px 14px",
+                        borderRadius: "999px",
+                        border: isActive
+                          ? "1px solid #1d4ed8"
+                          : "1px solid #d1d5db",
+                        backgroundColor: isActive ? "#dbeafe" : "#ffffff",
+                        color: isActive ? "#1d4ed8" : "#374151",
+                        fontWeight: "bold",
+                        cursor: "pointer"
+                      }}
+                    >
+                      {workspace.name}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {activeWorkspace && (
+                <div
+                  style={{
+                    padding: "16px",
+                    borderRadius: "10px",
+                    backgroundColor: "#f9fafb",
+                    border: "1px solid #e5e7eb"
+                  }}
+                >
+                  <p style={{ margin: "0 0 8px 0", color: "#374151" }}>
+                    <strong>Selected Workspace:</strong> {activeWorkspace.name}
+                  </p>
+                  <p style={{ margin: "0 0 8px 0", color: "#374151" }}>
+                    <strong>Workspace Code:</strong> {activeWorkspace.inviteCode}
+                  </p>
+                  <p style={{ margin: 0, color: "#374151" }}>
+                    <strong>Max Group Size:</strong> {activeWorkspace.teamSize}
+                  </p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
 
         {/* Team Config */}
         <div
@@ -123,7 +457,7 @@ return (
                   boxSizing: "border-box"
                 }}
               />
-            </div> 
+            </div>
 
             <div style={{ flex: "1", minWidth: "200px" }}>
               <label
@@ -189,40 +523,40 @@ return (
               Skill Balanced
             </option>
           </select>
-          
-        {/* Strategy help toggle */}
-        <button
-          type="button"
-          onClick={() => setShowStrategyHelp(!showStrategyHelp)}
-          style={{
-            marginTop: "12px",
-            padding: 0,
-            border: "none",
-            background: "none",
-            color: "#2563eb",
-            fontSize: "14px",
-            cursor: "pointer",
-            textDecoration: "underline"
-          }}
-        >
-          {showStrategyHelp ? "Hide details" : "Learn more"}
-        </button>
 
-        {showStrategyHelp && (
-          <p
+          <button
+            type="button"
+            onClick={() => setShowStrategyHelp(!showStrategyHelp)}
             style={{
-              marginTop: "10px",
-              marginBottom: 0,
-              color: "#6b7280",
+              marginTop: "12px",
+              padding: 0,
+              border: "none",
+              background: "none",
+              color: "#2563eb",
               fontSize: "14px",
-              lineHeight: "1.5"
+              cursor: "pointer",
+              textDecoration: "underline"
             }}
           >
+            {showStrategyHelp ? "Hide details" : "Learn more"}
+          </button>
 
-            Use a provided matching strategy when generating teams for the first time. To regenerate teams, choose a different strategy and click Regenerate Teams.
-          </p>
-        )}
-      </div>
+          {showStrategyHelp && (
+            <p
+              style={{
+                marginTop: "10px",
+                marginBottom: 0,
+                color: "#6b7280",
+                fontSize: "14px",
+                lineHeight: "1.5"
+              }}
+            >
+              Use a provided matching strategy when generating teams for the
+              first time. To regenerate teams, choose a different strategy and
+              click Regenerate Teams.
+            </p>
+          )}
+        </div>
 
         {/* Survey Questions */}
         <div
@@ -314,7 +648,7 @@ return (
           >
             Generate Teams
           </button>
-          
+
           {hasGenerated && (
             <button
               onClick={generateTeams}
@@ -329,9 +663,9 @@ return (
                 marginLeft: "10px"
               }}
             >
-               Regenerate Teams
-             </button>
-          )}    
+              Regenerate Teams
+            </button>
+          )}
         </div>
 
         {/* Results */}
@@ -362,10 +696,10 @@ return (
           )}
 
           {hasGenerated && (
-            <p style= {{ marginTop: 0, marginBottom: "16px", color: "#374151" }}>
+            <p style={{ marginTop: 0, marginBottom: "16px", color: "#374151" }}>
               <strong>Last Generated Using:</strong>{" "}
               {formatStrategyName(lastGeneratedStrategy)}
-            </p>  
+            </p>
           )}
 
           {teams.length === 0 && (
@@ -402,6 +736,18 @@ return (
           <h3 style={{ marginTop: 0, marginBottom: "16px", color: "#111827" }}>
             Current Configuration
           </h3>
+
+          {activeWorkspace && (
+            <>
+              <p style={{ color: "#374151" }}>
+                <strong>Active Workspace:</strong> {activeWorkspace.name}
+              </p>
+              <p style={{ color: "#374151" }}>
+                <strong>Workspace Code:</strong> {activeWorkspace.inviteCode}
+              </p>
+            </>
+          )}
+
           <p style={{ color: "#374151" }}>
             <strong>Team Size:</strong> {minSize} - {maxSize}
           </p>
