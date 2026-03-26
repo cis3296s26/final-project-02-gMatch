@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,14 +55,26 @@ export default function SurveyPage() {
         return;
       }
 
-      const newEntry = `${day}: ${formatTime(startTime)} - ${formatTime(endTime)}`;
+      const newEntry = {
+        day,
+        startTime,
+        endTime,
+      };
 
-      if (!availabilityList.includes(newEntry)) {
+      const exists = availabilityList.some(
+        (item) =>
+          item.day === day &&
+          item.startTime === startTime &&
+          item.endTime === endTime
+      );
+
+      if (!exists) {
         setAvailabilityList([...availabilityList, newEntry]);
       }
 
       setStartTime("");
       setEndTime("");
+      setDay("");
     }
 
     function removeSkill(index) {
@@ -196,7 +207,7 @@ export default function SurveyPage() {
                             key={index}
                             className="bg-muted border rounded p-2 text-sm flex justify-between items-center"
                           >
-                            {item}
+                            {item.day}: {formatTime(item.startTime)} - {formatTime(item.endTime)}
                             <button
                               type="button"
                               onClick={() =>
