@@ -1,23 +1,68 @@
 "use client";
 
-import link from "next/link"
+import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css"
 
 export default function SurveyPage() {
     const [name, setName] = useState("");
-    const [skills, setSkills] = useState("");
-    const [availability, setAvailability] = useState("");
+    const [skills, setSkills] = useState([]);
+    const [skillInput, setSkillInput] = useState("");
+    const [date, setDate] = useState(new Date());
+    const [time, setTime] = useState("");
+    const [availabilityList, setAvailabilityList] = useState([]);
     const [submitted, setSubmitted] = useState(false);
 
+    //to make the survey dynamic (concept)
+    const questions = [
+      { id: "name", label: "Name", type: "text" },
+      { id: "skills", label: "Skills", type: "skills" },
+      { id: "availability", label: "Availability", type: "availability" },
+    ];
+
     function handleSubmit(e){
-        e.prventDefault();
+        e.preventDefault();
 
-        console.log({ name, skills, availability });
+        console.log({ name, skills, availability: availabilityList });
 
-        setSubmitted(true);
+        if (name != "" && skills != "" && availabilityList != ""){
+          setSubmitted(true); 
+        } else {
+          alert("Please Answer All Questions");
+        }
+    }
+
+    function handleAddSkill(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+
+        const newSkill = skillInput.trim();
+
+        if (newSkill !== "" && !skills.includes(newSkill)) {
+          setSkills([...skills, newSkill]);
+          setSkillInput("");
+        }
+      }
+    }
+
+    function addAvailability() {
+      if (!time) return;
+
+      const newEntry = `${date.toDateString()} at ${time}`;
+
+      if (!availabilityList.includes(newEntry)) {
+        setAvailabilityList([...availabilityList, newEntry]);
+      }
+
+      setTime("");
+    }
+
+    function removeSkill(index) {
+      setSkills(skills.filter((_, i) => i !== index));
     }
 
     if (submitted) {
@@ -33,7 +78,7 @@ export default function SurveyPage() {
     );
   }
 
-    return (
+  return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
@@ -45,36 +90,94 @@ export default function SurveyPage() {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <p className="text-sm font-medium mb-1">Name</p>
-                <input
-                  className="w-full border rounded p-2"
-                  placeholder="Your Name"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
+              {questions.map((q) => (
+                <div key={q.id}>
+                  <p className="text-sm font-medium mb-1">{q.label}</p>
 
-              <div>
-                <p className="text-sm font-medium mb-1">Skills</p>
-                <input
-                  className="w-full border rounded p-2"
-                  placeholder="JavaScript, Python..."
-                  value={skills}
-                  onChange={(e) => setSkills(e.target.value)}
-                />
-              </div>
+                  {/* TEXT */}
+                  {q.type === "text" && (
+                    <input
+                      className="w-full border rounded p-2"
+                      placeholder={q.label}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                    />
+                  )}
 
-              <div>
-                <p className="text-sm font-medium mb-1">Availability</p>
-                <textarea
-                  className="w-full border rounded p-2"
-                  placeholder="Days and times..."
-                  value={availability}
-                  onChange={(e) => setAvailability(e.target.value)}
-                />
-              </div>
+                  {/* SKILLS */}
+                  {q.type === "skills" && (
+                    <div>
+                      <input
+                        className="w-full border rounded p-2"
+                        placeholder="Type a skill and press Enter"
+                        value={skillInput}
+                        onChange={(e) => setSkillInput(e.target.value)}
+                        onKeyDown={handleAddSkill}
+                      />
 
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {skills.map((skill, index) => (
+                          <div
+                            key={index}
+                            className="bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-2"
+                          >
+                            {skill}
+                            <button
+                              type="button"
+                              onClick={() => removeSkill(index)}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* AVAILABILITY */}
+                  {q.type === "availability" && (
+                    <div className="space-y-3">
+                      {/* Calendar */}
+                      <Calendar onChange={setDate} value={date} />
+
+                      {/* Time input */}
+                      <input
+                        type="time"
+                        className="w-full border rounded p-2"
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                      />
+
+                      {/* Add button */}
+                      <Button type="button" onClick={addAvailability}>
+                        Add Availability
+                      </Button>
+
+                      {/* Display selected times */}
+                      <div className="space-y-2">
+                        {availabilityList.map((item, index) => (
+                          <div
+                            key={index}
+                            className="border rounded p-2 text-sm flex justify-between"
+                          >
+                            {item}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setAvailabilityList(
+                                  availabilityList.filter((_, i) => i !== index)
+                                )
+                              }
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
               <Button type="submit" className="w-full">
                 Submit Survey
               </Button>
