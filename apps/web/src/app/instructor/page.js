@@ -8,6 +8,10 @@ export default function DashboardPage() {
   const [maxSize, setMaxSize] = useState(4);
   const [strategy, setStrategy] = useState("WeightedHybridStrategy");
   const [teams, setTeams] = useState([]);
+  const [hasGenerated, setHasGenerated] = useState(false);
+  const [lastGeneratedStrategy, setLastGeneratedStrategy] = useState("");
+  const [statusMessage, setStatusMessage] = useState("");
+  const [showStrategyHelp, setShowStrategyHelp] = useState(false);
 
   const [questions, setQuestions] = useState([
     "What days are you available?",
@@ -26,11 +30,15 @@ export default function DashboardPage() {
 
   const generateTeams = () => {
     const strategyInstance = StrategyFactory.create(strategy);
- 
+    
     // using minSize for now
     const generatedTeams = strategyInstance.generate(students, minSize);
+    const actionLabel = hasGenerated ? "regenerated" : "generated";
 
     setTeams(generatedTeams);
+    setHasGenerated(true);
+    setLastGeneratedStrategy(strategy);
+    setStatusMessage(`Teams ${actionLabel} successfully.`);
   };
 
   const addQuestion = () => {
@@ -181,7 +189,40 @@ return (
               Skill Balanced
             </option>
           </select>
-        </div>
+          
+        {/* Strategy help toggle */}
+        <button
+          type="button"
+          onClick={() => setShowStrategyHelp(!showStrategyHelp)}
+          style={{
+            marginTop: "12px",
+            padding: 0,
+            border: "none",
+            background: "none",
+            color: "#2563eb",
+            fontSize: "14px",
+            cursor: "pointer",
+            textDecoration: "underline"
+          }}
+        >
+          {showStrategyHelp ? "Hide details" : "Learn more"}
+        </button>
+
+        {showStrategyHelp && (
+          <p
+            style={{
+              marginTop: "10px",
+              marginBottom: 0,
+              color: "#6b7280",
+              fontSize: "14px",
+              lineHeight: "1.5"
+            }}
+          >
+
+            Use a provided matching strategy when generating teams for the first time. To regenerate teams, choose a different strategy and click Regenerate Teams.
+          </p>
+        )}
+      </div>
 
         {/* Survey Questions */}
         <div
@@ -273,6 +314,24 @@ return (
           >
             Generate Teams
           </button>
+          
+          {hasGenerated && (
+            <button
+              onClick={generateTeams}
+              style={{
+                padding: "12px 18px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                backgroundColor: "#ffffff",
+                color: "#111827",
+                fontWeight: "bold",
+                cursor: "pointer",
+                marginLeft: "10px"
+              }}
+            >
+               Regenerate Teams
+             </button>
+          )}    
         </div>
 
         {/* Results */}
@@ -288,6 +347,26 @@ return (
           <h3 style={{ marginTop: 0, marginBottom: "16px", color: "#111827" }}>
             Generated Teams
           </h3>
+
+          {statusMessage && (
+            <p
+              style={{
+                marginTop: "0",
+                marginBottom: "12px",
+                color: "#2563eb",
+                fontWeight: "bold"
+              }}
+            >
+              {statusMessage}
+            </p>
+          )}
+
+          {hasGenerated && (
+            <p style= {{ marginTop: 0, marginBottom: "16px", color: "#374151" }}>
+              <strong>Last Generated Using:</strong>{" "}
+              {formatStrategyName(lastGeneratedStrategy)}
+            </p>  
+          )}
 
           {teams.length === 0 && (
             <p style={{ color: "#6b7280" }}>No teams generated yet.</p>
@@ -326,6 +405,7 @@ return (
           <p style={{ color: "#374151" }}>
             <strong>Team Size:</strong> {minSize} - {maxSize}
           </p>
+
           <p style={{ color: "#374151" }}>
             <strong>Strategy:</strong>{" "}
             {strategy === "WeightedHybridStrategy"
