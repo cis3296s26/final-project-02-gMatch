@@ -5,6 +5,8 @@ import Google from "next-auth/providers/google";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  trustHost: true,
+  secret: process.env.NEXTAUTH_SECRET,
   providers: [
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID,
@@ -32,12 +34,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             oauthId: account.providerAccountId,
           }),
         });
-        if (!res.ok) return false;
-        return true;
+        if (!res.ok) {
+          console.warn("[NextAuth] Backend returned error, but allowing sign-in");
+        }
       } catch (err) {
-        console.error("[NextAuth] signIn callback error:", err);
-        return false;
+        console.warn("[NextAuth] Backend unreachable, but allowing sign-in:", err.message);
       }
+      // Always allow OAuth sign-in — user syncs to DB when backend is available
+      return true;
     },
     async session({ session }) {
       if (session?.user?.email) {
