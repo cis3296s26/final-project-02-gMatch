@@ -4,6 +4,15 @@ import Google from "next-auth/providers/google";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
+/** Helper: fetch with a timeout (default 3s) so the app never hangs */
+function fetchWithTimeout(url, options = {}, timeoutMs = 3000) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+  return fetch(url, { ...options, signal: controller.signal }).finally(() =>
+    clearTimeout(timer)
+  );
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   trustHost: true,
   secret: process.env.NEXTAUTH_SECRET,
@@ -23,7 +32,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async signIn({ user, account }) {
       try {
-        const res = await fetch(`${API_URL}/api/auth/login`, {
+        const res = await fetchWithTimeout(`${API_URL}/api/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -38,15 +47,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           console.warn("[NextAuth] Backend returned error, but allowing sign-in");
         }
       } catch (err) {
-        console.warn("[NextAuth] Backend unreachable, but allowing sign-in:", err.message);
+        console.warn("[NextAuth] Backend unreachable, allowing sign-in:", err.message);
       }
-      // Always allow OAuth sign-in — user syncs to DB when backend is available
       return true;
     },
     async session({ session }) {
       if (session?.user?.email) {
         try {
-          const res = await fetch(
+          const res = await fetchWithTimeout(
             `${API_URL}/api/auth/me?email=${encodeURIComponent(session.user.email)}`
           );
           if (res.ok) {
@@ -55,12 +63,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             session.user.role = dbUser.role;
           }
         } catch (err) {
-          console.error("[NextAuth] session callback error:", err);
+          // Timeout or connection error — return session without DB data
         }
       }
       return session;
     },
   },
 });
-
-

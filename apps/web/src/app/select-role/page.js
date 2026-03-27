@@ -13,12 +13,12 @@ export default function SelectRolePage() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
     }
-    // If user already has a role, redirect to their dashboard
     if (session?.user?.role === "organizer") {
       router.push("/organizer/dashboard");
     } else if (session?.user?.role === "participant") {
@@ -28,20 +28,29 @@ export default function SelectRolePage() {
 
   async function handleSelectRole(role) {
     setLoading(true);
+    setError("");
     try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+
       const res = await fetch(`${API_URL}/api/auth/role`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: session.user.email, role }),
+        signal: controller.signal,
       });
+      clearTimeout(timer);
 
       if (res.ok) {
-        // Refresh the session to pick up the new role
         await update();
         router.push(role === "organizer" ? "/organizer/dashboard" : "/participant/dashboard");
+      } else {
+        setError("Could not save your role. The server may be down — please try again.");
       }
     } catch (err) {
-      console.error("Failed to set role:", err);
+      // Timeout or network error — redirect anyway so user isn't stuck
+      console.warn("Role update failed, redirecting anyway:", err.message);
+      router.push(role === "organizer" ? "/organizer/dashboard" : "/participant/dashboard");
     } finally {
       setLoading(false);
     }
@@ -72,6 +81,12 @@ export default function SelectRolePage() {
             Choose your role to get started. You can change this later.
           </p>
         </div>
+
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Card
