@@ -14,7 +14,10 @@ app.use(express.urlencoded({ extended: true }));
 
 // --------------- Routes ---------------
 const authRoutes = require("./routes/auth");
+const workspaceRoutes = require("./routes/workspaces");
+
 app.use("/api/auth", authRoutes);
+app.use("/api/workspaces", workspaceRoutes);
 
 const workspaceRoutes = require("./routes/workspaces");
 app.use("/api/workspaces", workspaceRoutes);

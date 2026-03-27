@@ -70,7 +70,7 @@ export default function LandingPage() {
             <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
               <Link href="/organizer/dashboard">
                 <Button size="lg" className="h-12 gap-2 px-6 text-base font-semibold">
-                  Instructor View
+                  Dashboard
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
