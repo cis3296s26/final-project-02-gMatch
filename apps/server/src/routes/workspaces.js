@@ -28,7 +28,7 @@ async function generateUniqueInviteCode() {
 }
 
 // GET all workspaces
-router.get("/", async (req, res) => {
+router.get("/", async (_req, res) => {
   try {
     const workspaces = await Workspace.find().sort({ createdAt: 1 });
     res.json({ workspaces });
@@ -61,13 +61,50 @@ router.post("/", async (req, res) => {
       organizerId: "000000000000000000000000",
       name: name.trim(),
       teamSize: Number(teamSize),
-      inviteCode
+      inviteCode,
+      teams: []
     });
 
     return res.status(201).json({ workspace });
   } catch (error) {
     return res.status(500).json({
       message: "Failed to create workspace",
+      error: error.message
+    });
+  }
+});
+
+//save teams to a workspace
+router.put("/:workspaceId/teams", async (req, res) => {
+  try {
+    const { workspaceId } = req.params;
+    const { teams } = req.body;
+
+    if (!Array.isArray(teams)) {
+      return res.status(400).json({ message: "Teams must be an array" });
+    }
+
+    const formattedTeams = teams.map((team) => ({
+      members: Array.isArray(team) ? team : team.members || []
+    }));
+
+    const updatedWorkspace = await Workspace.findByIdAndUpdate(
+      workspaceId,
+      { teams: formattedTeams },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedWorkspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+
+    return res.json({
+      message: "Teams saved successfully",
+      workspace: updatedWorkspace
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to save teams",
       error: error.message
     });
   }
