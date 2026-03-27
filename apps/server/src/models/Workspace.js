@@ -5,45 +5,39 @@ const workspaceSchema = new mongoose.Schema(
     organizerId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: true
     },
     name: {
       type: String,
       required: true,
-      trim: true,
-    },
-    template: {
-      type: String,
-      enum: [
-        "software-engineering",
-        "business-case-study",
-        "study-group",
-        "hackathon",
-        "blank",
-      ],
-      default: "blank",
+      trim: true
     },
     teamSize: {
       type: Number,
       required: true,
-      min: 2,
-    },
-    requiredTags: {
-      type: [String],
-      default: [],
+      min: 2
     },
     inviteCode: {
       type: String,
       required: true,
-      unique: true,
-      minlength: 6,
-      maxlength: 6,
+      unique: true
     },
-    status: {
-      type: String,
-      enum: ["open", "matching", "published"],
-      default: "open",
-    },
+
+    //store generated teams inside the workspace
+    teams: {
+      type: [
+        {
+          members: [
+            {
+              name: { type: String, required: true },
+              availability: [{ type: String }],
+              skills: [{ type: String }]
+            }
+          ]
+        }
+      ],
+      default: []
+    }
   },
   { timestamps: true }
 );
