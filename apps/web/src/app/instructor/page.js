@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import StrategyFactory from "@/services/StrategyFactory";
+import Navbar from "@/components/Navbar";
 
 export default function DashboardPage() {
   const [minSize, setMinSize] = useState(2);
@@ -60,12 +61,11 @@ export default function DashboardPage() {
   }; 
 
 return (
+    <div style={{ fontFamily: "Arial, sans-serif", backgroundColor: "#f8fafc", minHeight: "100vh" }}>
+      <Navbar variant="dashboard" />
     <div
       style={{
         padding: "40px",
-        fontFamily: "Arial, sans-serif",
-        backgroundColor: "#f8fafc",
-        minHeight: "100vh"
       }}
     >
       <div
@@ -429,6 +429,7 @@ return (
           </ul>
         </div>
       </div>
+    </div>
     </div>
   );
 }

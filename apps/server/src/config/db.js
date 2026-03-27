@@ -8,15 +8,14 @@ async function connectDB() {
   try {
     const uri = process.env.MONGODB_URI;
     if (!uri) {
-      console.error("[MongoDB] MONGODB_URI is not defined in environment variables");
-      process.exit(1);
+      console.warn("[MongoDB] MONGODB_URI is not defined in environment variables");
+      return;
     }
 
     await mongoose.connect(uri);
     console.log(`[MongoDB] Connected to ${mongoose.connection.name}`);
   } catch (err) {
-    console.error("[MongoDB] Connection error:", err.message);
-    process.exit(1);
+    console.error(`[MongoDB] Connection error: ${err.message}. Backend will run without DB.`);
   }
 }
 
