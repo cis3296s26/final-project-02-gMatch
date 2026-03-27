@@ -25,7 +25,6 @@ export default function DashboardPage() {
   ]);
   const [newQuestion, setNewQuestion] = useState("");
 
-  // Workspace state
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceMaxGroupSize, setWorkspaceMaxGroupSize] = useState(4);
   const [workspaces, setWorkspaces] = useState([]);
@@ -48,6 +47,20 @@ export default function DashboardPage() {
   useEffect(() => {
     loadWorkspaces();
   }, [session]);
+
+  useEffect(() => {
+    const selectedWorkspace =
+      workspaces.find((workspace) => workspace._id === activeWorkspaceId) || null;
+
+    if (selectedWorkspace?.teams?.length > 0) {
+      const restoredTeams = selectedWorkspace.teams.map((team) => team.members || []);
+      setTeams(restoredTeams);
+      setHasGenerated(true);
+    } else {
+      setTeams([]);
+      setHasGenerated(false);
+    }
+  }, [activeWorkspaceId, workspaces]);
 
   const loadWorkspaces = async () => {
     setWorkspaceMessage("");
@@ -81,12 +94,12 @@ export default function DashboardPage() {
     }
   };
 
-  const persistLocalWorkspaces = (updatedWorkspaces) => {
+  const persistLocalWorkspaces = (updatedWorkspaces, nextActiveWorkspaceId = null) => {
     localStorage.setItem(localStorageKey, JSON.stringify(updatedWorkspaces));
     setWorkspaces(updatedWorkspaces);
 
-    if (updatedWorkspaces.length > 0) {
-      setActiveWorkspaceId(updatedWorkspaces[updatedWorkspaces.length - 1]._id);
+    if (nextActiveWorkspaceId) {
+      setActiveWorkspaceId(nextActiveWorkspaceId);
     }
   };
 
@@ -155,11 +168,12 @@ export default function DashboardPage() {
         name: trimmedName,
         teamSize: workspaceMaxGroupSize,
         inviteCode: generateLocalWorkspaceCode(),
-        createdAt: new Date().toISOString()
+        createdAt: new Date().toISOString(),
+        teams: []
       };
 
       const updatedWorkspaces = [...workspaces, localWorkspace];
-      persistLocalWorkspaces(updatedWorkspaces);
+      persistLocalWorkspaces(updatedWorkspaces, localWorkspace._id);
 
       setWorkspaceMessage(
         `Workspace created locally. Code: ${localWorkspace.inviteCode}`
@@ -174,7 +188,60 @@ export default function DashboardPage() {
   const activeWorkspace =
     workspaces.find((workspace) => workspace._id === activeWorkspaceId) || null;
 
-  const generateTeams = () => {
+  const saveTeamsToLocalWorkspace = (generatedTeams) => {
+    if (!activeWorkspace) return;
+
+    const updatedWorkspaces = workspaces.map((workspace) =>
+      workspace._id === activeWorkspace._id
+        ? {
+            ...workspace,
+            teams: generatedTeams.map((team) => ({
+              members: team
+            }))
+          }
+        : workspace
+    );
+
+    persistLocalWorkspaces(updatedWorkspaces, activeWorkspace._id);
+  };
+
+  const saveTeamsToBackendWorkspace = async (generatedTeams) => {
+    if (!activeWorkspace) return false;
+
+    const response = await fetch(
+      `${API_BASE_URL}/api/workspaces/${activeWorkspace._id}/teams`,
+      {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        credentials: "include",
+        body: JSON.stringify({ teams: generatedTeams })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("Could not save teams to backend");
+    }
+
+    const data = await response.json();
+    const updatedWorkspace = data.workspace;
+
+    setWorkspaces((prev) =>
+      prev.map((workspace) =>
+        workspace._id === updatedWorkspace._id ? updatedWorkspace : workspace
+      )
+    );
+
+    return true;
+  };
+
+  const generateTeams = async () => {
+    if (!activeWorkspace) {
+      setStatusMessage("Please create and select a workspace first.");
+      return;
+    }
+
     const strategyInstance = StrategyFactory.create(strategy);
     const generatedTeams = strategyInstance.generate(students, minSize);
     const actionLabel = hasGenerated ? "regenerated" : "generated";
@@ -183,12 +250,16 @@ export default function DashboardPage() {
     setHasGenerated(true);
     setLastGeneratedStrategy(strategy);
 
-    if (activeWorkspace) {
+    try {
+      await saveTeamsToBackendWorkspace(generatedTeams);
       setStatusMessage(
-        `Teams ${actionLabel} successfully for "${activeWorkspace.name}".`
+        `Teams ${actionLabel} and saved to "${activeWorkspace.name}".`
       );
-    } else {
-      setStatusMessage(`Teams ${actionLabel} successfully.`);
+    } catch (_error) {
+      saveTeamsToLocalWorkspace(generatedTeams);
+      setStatusMessage(
+        `Teams ${actionLabel} and saved locally to "${activeWorkspace.name}".`
+      );
     }
   };
 
@@ -219,12 +290,7 @@ export default function DashboardPage() {
         minHeight: "100vh"
       }}
     >
-      <div
-        style={{
-          maxWidth: "900px",
-          margin: "0 auto"
-        }}
-      >
+      <div style={{ maxWidth: "900px", margin: "0 auto" }}>
         <h2
           style={{
             fontSize: "32px",
@@ -235,7 +301,6 @@ export default function DashboardPage() {
           Instructor Dashboard
         </h2>
 
-        {/* Create Workspace */}
         <div
           style={{
             backgroundColor: "#ffffff",
@@ -340,7 +405,6 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Workspace Tabs */}
         <div
           style={{
             backgroundColor: "#ffffff",
@@ -409,8 +473,11 @@ export default function DashboardPage() {
                   <p style={{ margin: "0 0 8px 0", color: "#374151" }}>
                     <strong>Workspace Code:</strong> {activeWorkspace.inviteCode}
                   </p>
-                  <p style={{ margin: 0, color: "#374151" }}>
+                  <p style={{ margin: "0 0 8px 0", color: "#374151" }}>
                     <strong>Max Group Size:</strong> {activeWorkspace.teamSize}
+                  </p>
+                  <p style={{ margin: 0, color: "#374151" }}>
+                    <strong>Saved Teams:</strong> {activeWorkspace.teams?.length || 0}
                   </p>
                 </div>
               )}
@@ -418,7 +485,6 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Team Config */}
         <div
           style={{
             backgroundColor: "#ffffff",
@@ -487,7 +553,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Strategy */}
         <div
           style={{
             backgroundColor: "#ffffff",
@@ -558,7 +623,6 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Survey Questions */}
         <div
           style={{
             backgroundColor: "#ffffff",
@@ -574,13 +638,7 @@ export default function DashboardPage() {
 
           <ul style={{ paddingLeft: "20px", marginBottom: "16px" }}>
             {questions.map((q, i) => (
-              <li
-                key={i}
-                style={{
-                  marginBottom: "10px",
-                  color: "#374151"
-                }}
-              >
+              <li key={i} style={{ marginBottom: "10px", color: "#374151" }}>
                 {q}
                 <button
                   onClick={() => removeQuestion(i)}
@@ -632,7 +690,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Generate Button */}
         <div style={{ marginTop: "30px", marginBottom: "20px" }}>
           <button
             onClick={generateTeams}
@@ -668,7 +725,6 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* Results */}
         <div
           style={{
             backgroundColor: "#ffffff",
@@ -703,7 +759,9 @@ export default function DashboardPage() {
           )}
 
           {teams.length === 0 && (
-            <p style={{ color: "#6b7280" }}>No teams generated yet.</p>
+            <p style={{ color: "#6b7280" }}>
+              No teams saved in this workspace yet.
+            </p>
           )}
 
           {teams.map((team, index) => (
@@ -723,7 +781,6 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Config Preview */}
         <div
           style={{
             marginTop: "20px",
@@ -744,6 +801,9 @@ export default function DashboardPage() {
               </p>
               <p style={{ color: "#374151" }}>
                 <strong>Workspace Code:</strong> {activeWorkspace.inviteCode}
+              </p>
+              <p style={{ color: "#374151" }}>
+                <strong>Saved Team Count:</strong> {activeWorkspace.teams?.length || 0}
               </p>
             </>
           )}
