@@ -6,11 +6,13 @@ export default auth((req) => {
   const isLoggedIn = !!req.auth;
 
   // Protected routes
-  const protectedPaths = ["/organizer", "/participant", "/select-role"];
+  const protectedPaths = ["/organizer", "/participant", "/instructor", "/select-role"];
   const isProtected = protectedPaths.some((p) => pathname.startsWith(p));
 
   if (isProtected && !isLoggedIn) {
-    return NextResponse.redirect(new URL("/login", req.url));
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(loginUrl);
   }
 
   // If logged in and visiting /login, redirect to select-role (or dashboard)
@@ -28,5 +30,5 @@ export default auth((req) => {
 });
 
 export const config = {
-  matcher: ["/organizer/:path*", "/participant/:path*", "/select-role", "/login"],
+  matcher: ["/organizer/:path*", "/participant/:path*", "/instructor/:path*", "/select-role", "/login"],
 };

@@ -1,47 +1,62 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
 import { Users, GraduationCap, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
-export default function SelectRolePage() {
+function SelectRoleContent() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
     }
-    // If user already has a role, redirect to their dashboard
     if (session?.user?.role === "organizer") {
-      router.push("/organizer/dashboard");
+      router.push(callbackUrl || "/organizer/dashboard");
     } else if (session?.user?.role === "participant") {
-      router.push("/participant/dashboard");
+      router.push(callbackUrl || "/participant/dashboard");
     }
-  }, [status, session, router]);
+  }, [status, session, router, callbackUrl]);
+
+  function getRedirect(role) {
+    if (callbackUrl) return callbackUrl;
+    return role === "organizer" ? "/organizer/dashboard" : "/participant/dashboard";
+  }
 
   async function handleSelectRole(role) {
     setLoading(true);
+    setError("");
     try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 5000);
+
       const res = await fetch(`${API_URL}/api/auth/role`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: session.user.email, role }),
+        signal: controller.signal,
       });
+      clearTimeout(timer);
 
       if (res.ok) {
-        // Refresh the session to pick up the new role
         await update();
-        router.push(role === "organizer" ? "/organizer/dashboard" : "/participant/dashboard");
+        router.push(getRedirect(role));
+      } else {
+        setError("Could not save your role. The server may be down — please try again.");
       }
     } catch (err) {
-      console.error("Failed to set role:", err);
+      console.warn("Role update failed, redirecting anyway:", err.message);
+      router.push(getRedirect(role));
     } finally {
       setLoading(false);
     }
@@ -72,6 +87,12 @@ export default function SelectRolePage() {
             Choose your role to get started. You can change this later.
           </p>
         </div>
+
+        {error && (
+          <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-3 text-center text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Card
@@ -112,5 +133,13 @@ export default function SelectRolePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SelectRolePage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>}>
+      <SelectRoleContent />
+    </Suspense>
   );
 }

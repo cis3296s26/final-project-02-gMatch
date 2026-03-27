@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import StrategyFactory from "@/services/StrategyFactory";
+import Navbar from "@/components/Navbar";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
@@ -306,9 +307,6 @@ export default function DashboardPage() {
     <div
       style={{
         padding: "40px",
-        fontFamily: "Arial, sans-serif",
-        backgroundColor: "#f8fafc",
-        minHeight: "100vh"
       }}
     >
       <div style={{ maxWidth: "900px", margin: "0 auto" }}>
@@ -861,6 +859,7 @@ export default function DashboardPage() {
           </ul>
         </div>
       </div>
+    </div>
     </div>
   );
 }
