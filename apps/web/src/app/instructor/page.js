@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import StrategyFactory from "@/services/StrategyFactory";
+import Navbar from "@/components/Navbar";
+import Link from "next/link"; 
 
 export default function DashboardPage() {
   const [minSize, setMinSize] = useState(2);
@@ -52,6 +54,8 @@ export default function DashboardPage() {
   }; 
 
 return (
+  <> 
+    <Navbar variant="dashboard" />
     <div
       style={{
         padding: "40px",
@@ -66,6 +70,21 @@ return (
           margin: "0 auto"
         }}
       >
+        <div style={{ marginBottom: "20px" }}>
+          <Link
+            href="/"
+            style={{
+              display: "inline-block",
+              textDecoration: "none",
+              color: "#4f46e5",
+              fontWeight: "bold",
+              marginBottom: "10px"
+            }}
+          >
+            ← Back to Home
+          </Link>
+        </div>
+
         <h2
           style={{
             fontSize: "32px",
@@ -273,6 +292,27 @@ return (
           >
             Generate Teams
           </button>
+<<<<<<< Updated upstream
+=======
+          
+          {hasGenerated && (
+            <button
+              onClick={generateTeams}
+              style={{
+                padding: "12px 18px",
+                border: "1px solid #d1d5db",
+                borderRadius: "8px",
+                backgroundColor: "#ffffff",
+                color: "#111827",
+                fontWeight: "bold",
+                cursor: "pointer",
+                marginLeft: "10px"
+              }}
+            >
+              Regenerate Teams
+            </button>
+        )}    
+>>>>>>> Stashed changes
         </div>
 
         {/* Results */}
@@ -350,5 +390,6 @@ return (
         </div>
       </div>
     </div>
-  );
+  </>
+);
 }
