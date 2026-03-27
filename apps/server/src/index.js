@@ -16,6 +16,9 @@ app.use(express.urlencoded({ extended: true }));
 const authRoutes = require("./routes/auth");
 app.use("/api/auth", authRoutes);
 
+const workspaceRoutes = require("./routes/workspaces");
+app.use("/api/workspaces", workspaceRoutes);
+
 app.get("/api/health", (_req, res) => {
   const dbStates = ["disconnected", "connected", "connecting", "disconnecting"];
   res.json({
