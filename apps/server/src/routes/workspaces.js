@@ -74,6 +74,62 @@ router.post("/", async (req, res) => {
   }
 });
 
+// GET single workspace by ID
+router.get("/:id", async (req, res) => {
+  try {
+    const workspace = await Workspace.findById(req.params.id);
+    if (!workspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+    return res.json(workspace);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch workspace",
+      error: error.message
+    });
+  }
+});
+
+router.patch("/:id", async (req, res) => {
+  try {
+    const { name, teamSize } = req.body;
+    const update = {};
+    if (name) update.name = name.trim();
+    if (teamSize) update.teamSize = Number(teamSize);
+
+    const workspace = await Workspace.findByIdAndUpdate(
+      req.params.id,
+      update,
+      { new: true }
+    );
+    if (!workspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+    return res.json(workspace);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to update workspace",
+      error: error.message
+    });
+  }
+});
+
+// DELETE workspace
+router.delete("/:id", async (req, res) => {
+  try {
+    const workspace = await Workspace.findByIdAndDelete(req.params.id);
+    if (!workspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+    return res.json({ message: "Workspace deleted" });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to delete workspace",
+      error: error.message
+    });
+  }
+});
+
 //save teams to a workspace
 router.put("/:workspaceId/teams", async (req, res) => {
   try {
