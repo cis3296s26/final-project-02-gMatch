@@ -1,19 +1,17 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
-import Calendar from "react-calendar";
-import "react-calendar/dist/Calendar.css"
 
 export default function SurveyPage() {
     const [name, setName] = useState("");
     const [skills, setSkills] = useState([]);
     const [skillInput, setSkillInput] = useState("");
-    const [date, setDate] = useState(new Date());
-    const [time, setTime] = useState("");
+    const [day, setDay] = useState("");
+    const [startTime, setStartTime] = useState("");
+    const [endTime, setEndTime] = useState("");
     const [availabilityList, setAvailabilityList] = useState([]);
     const [submitted, setSubmitted] = useState(false);
 
@@ -29,10 +27,10 @@ export default function SurveyPage() {
 
         console.log({ name, skills, availability: availabilityList });
 
-        if (name != "" && skills != "" && availabilityList != ""){
-          setSubmitted(true); 
+        if (name && skills.length > 0 && availabilityList.length > 0) {
+          setSubmitted(true);
         } else {
-          alert("Please Answer All Questions");
+          alert("Please answer all questions");
         }
     }
 
@@ -50,19 +48,46 @@ export default function SurveyPage() {
     }
 
     function addAvailability() {
-      if (!time) return;
+      if (!day || !startTime || !endTime) return;
 
-      const newEntry = `${date.toDateString()} at ${time}`;
+      if (startTime >= endTime) {
+        alert("End time must be after start time");
+        return;
+      }
 
-      if (!availabilityList.includes(newEntry)) {
+      const newEntry = {
+        day,
+        startTime,
+        endTime,
+      };
+
+      const exists = availabilityList.some(
+        (item) =>
+          item.day === day &&
+          item.startTime === startTime &&
+          item.endTime === endTime
+      );
+
+      if (!exists) {
         setAvailabilityList([...availabilityList, newEntry]);
       }
 
-      setTime("");
+      setStartTime("");
+      setEndTime("");
+      setDay("");
     }
 
     function removeSkill(index) {
       setSkills(skills.filter((_, i) => i !== index));
+    }
+
+    function formatTime(time) {
+      const [hour, minute] = time.split(":");
+      const h = parseInt(hour);
+      const ampm = h >= 12 ? "PM" : "AM";
+      const formattedHour = h % 12 || 12;
+
+      return `${formattedHour}:${minute} ${ampm}`;
     }
 
     if (submitted) {
@@ -137,15 +162,37 @@ export default function SurveyPage() {
                   {/* AVAILABILITY */}
                   {q.type === "availability" && (
                     <div className="space-y-3">
-                      {/* Calendar */}
-                      <Calendar onChange={setDate} value={date} />
 
-                      {/* Time input */}
+                      {/* Day selector */}
+                      <select
+                        className="w-full border rounded p-2"
+                        value={day}
+                        onChange={(e) => setDay(e.target.value)}
+                      >
+                        <option value="">Select a day</option>
+                        <option>Monday</option>
+                        <option>Tuesday</option>
+                        <option>Wednesday</option>
+                        <option>Thursday</option>
+                        <option>Friday</option>
+                        <option>Saturday</option>
+                        <option>Sunday</option>
+                      </select>
+
+                      {/* Start time */}
                       <input
                         type="time"
                         className="w-full border rounded p-2"
-                        value={time}
-                        onChange={(e) => setTime(e.target.value)}
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                      />
+
+                      {/* End time */}
+                      <input
+                        type="time"
+                        className="w-full border rounded p-2"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
                       />
 
                       {/* Add button */}
@@ -153,14 +200,14 @@ export default function SurveyPage() {
                         Add Availability
                       </Button>
 
-                      {/* Display selected times */}
+                      {/* Display slots */}
                       <div className="space-y-2">
                         {availabilityList.map((item, index) => (
                           <div
                             key={index}
-                            className="border rounded p-2 text-sm flex justify-between"
+                            className="bg-muted border rounded p-2 text-sm flex justify-between items-center"
                           >
-                            {item}
+                            {item.day}: {formatTime(item.startTime)} - {formatTime(item.endTime)}
                             <button
                               type="button"
                               onClick={() =>
