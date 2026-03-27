@@ -36,7 +36,8 @@ export default function OrganizerDashboard() {
       );
       if (res.ok) {
         const data = await res.json();
-        setWorkspaces(data);
+        const list = data.workspaces || data;
+        setWorkspaces(Array.isArray(list) ? list : []);
       }
     } catch (err) {
       console.error("Failed to fetch workspaces:", err);
@@ -63,7 +64,8 @@ export default function OrganizerDashboard() {
       });
 
       if (res.ok) {
-        const workspace = await res.json();
+        const data = await res.json();
+        const workspace = data.workspace || data;
         setWorkspaces((prev) => [workspace, ...prev]);
         setNewName("");
         setNewTeamSize(4);
