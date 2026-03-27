@@ -71,3 +71,13 @@ See `.env.example` for all required variables:
 - `GITHUB_CLIENT_ID` / `GITHUB_CLIENT_SECRET` — GitHub OAuth app credentials
 - `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` — Google OAuth app credentials
 - `NEXT_PUBLIC_API_URL` — Express backend URL (default: http://localhost:5001)
+
+## Page Links (Temporary Access for Demo)
+If deployed locally, change port as needed
+```bash
+# 1. Instructor View
+http://localhost:3000/instructor
+
+# 2. Survey Page
+http://localhost:3000/participant/survey
+```
