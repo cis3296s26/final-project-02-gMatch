@@ -11,7 +11,7 @@ export default function Navbar({ variant = "landing" }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const { data: session } = useSession();
 
-  const isDashboard = variant === "dashboard";
+  const isLoggedIn = !!session?.user;
 
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/80 backdrop-blur-xl">
@@ -28,7 +28,7 @@ export default function Navbar({ variant = "landing" }) {
 
         {/* Desktop Nav */}
         <div className="hidden items-center gap-3 md:flex">
-          {isDashboard && session?.user ? (
+          {isLoggedIn ? (
             <>
               {session.user.image ? (
                 <Image
@@ -79,7 +79,7 @@ export default function Navbar({ variant = "landing" }) {
       {mobileOpen && (
         <div className="border-t border-border/60 bg-background px-4 pb-4 pt-2 md:hidden">
           <div className="flex flex-col gap-2">
-            {isDashboard && session?.user ? (
+            {isLoggedIn ? (
               <>
                 <div className="flex items-center gap-2 px-2 py-1.5">
                   {session.user.image ? (

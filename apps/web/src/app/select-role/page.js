@@ -1,17 +1,19 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, Suspense } from "react";
 import { Users, GraduationCap, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
-export default function SelectRolePage() {
+function SelectRoleContent() {
   const { data: session, status, update } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -20,11 +22,16 @@ export default function SelectRolePage() {
       router.push("/login");
     }
     if (session?.user?.role === "organizer") {
-      router.push("/organizer/dashboard");
+      router.push(callbackUrl || "/organizer/dashboard");
     } else if (session?.user?.role === "participant") {
-      router.push("/participant/dashboard");
+      router.push(callbackUrl || "/participant/dashboard");
     }
-  }, [status, session, router]);
+  }, [status, session, router, callbackUrl]);
+
+  function getRedirect(role) {
+    if (callbackUrl) return callbackUrl;
+    return role === "organizer" ? "/organizer/dashboard" : "/participant/dashboard";
+  }
 
   async function handleSelectRole(role) {
     setLoading(true);
@@ -43,14 +50,13 @@ export default function SelectRolePage() {
 
       if (res.ok) {
         await update();
-        router.push(role === "organizer" ? "/organizer/dashboard" : "/participant/dashboard");
+        router.push(getRedirect(role));
       } else {
         setError("Could not save your role. The server may be down — please try again.");
       }
     } catch (err) {
-      // Timeout or network error — redirect anyway so user isn't stuck
       console.warn("Role update failed, redirecting anyway:", err.message);
-      router.push(role === "organizer" ? "/organizer/dashboard" : "/participant/dashboard");
+      router.push(getRedirect(role));
     } finally {
       setLoading(false);
     }
@@ -127,5 +133,13 @@ export default function SelectRolePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SelectRolePage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><p className="text-muted-foreground">Loading...</p></div>}>
+      <SelectRoleContent />
+    </Suspense>
   );
 }
