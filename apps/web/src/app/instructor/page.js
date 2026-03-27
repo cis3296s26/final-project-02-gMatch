@@ -46,6 +46,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     loadWorkspaces();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   useEffect(() => {
@@ -53,7 +54,9 @@ export default function DashboardPage() {
       workspaces.find((workspace) => workspace._id === activeWorkspaceId) || null;
 
     if (selectedWorkspace?.teams?.length > 0) {
-      const restoredTeams = selectedWorkspace.teams.map((team) => team.members || []);
+      const restoredTeams = selectedWorkspace.teams.map(
+        (team) => team.members || []
+      );
       setTeams(restoredTeams);
       setHasGenerated(true);
     } else {
@@ -94,7 +97,10 @@ export default function DashboardPage() {
     }
   };
 
-  const persistLocalWorkspaces = (updatedWorkspaces, nextActiveWorkspaceId = null) => {
+  const persistLocalWorkspaces = (
+    updatedWorkspaces,
+    nextActiveWorkspaceId = null
+  ) => {
     localStorage.setItem(localStorageKey, JSON.stringify(updatedWorkspaces));
     setWorkspaces(updatedWorkspaces);
 
@@ -124,7 +130,10 @@ export default function DashboardPage() {
       return;
     }
 
-    if (workspaceMaxGroupSize < 2) {
+    if (
+      workspaceMaxGroupSize === "" ||
+      Number(workspaceMaxGroupSize) < 2
+    ) {
       setWorkspaceMessage("Max group size must be at least 2.");
       return;
     }
@@ -133,7 +142,7 @@ export default function DashboardPage() {
 
     const payload = {
       name: trimmedName,
-      teamSize: workspaceMaxGroupSize
+      teamSize: Number(workspaceMaxGroupSize)
     };
 
     try {
@@ -166,7 +175,7 @@ export default function DashboardPage() {
       const localWorkspace = {
         _id: `${Date.now()}`,
         name: trimmedName,
-        teamSize: workspaceMaxGroupSize,
+        teamSize: Number(workspaceMaxGroupSize),
         inviteCode: generateLocalWorkspaceCode(),
         createdAt: new Date().toISOString(),
         teams: []
@@ -242,8 +251,20 @@ export default function DashboardPage() {
       return;
     }
 
+    if (minSize === "" || Number(minSize) < 1) {
+      setStatusMessage("Please enter a valid minimum team size.");
+      return;
+    }
+
+    if (maxSize === "" || Number(maxSize) < Number(minSize)) {
+      setStatusMessage(
+        "Please enter a valid maximum team size greater than or equal to the minimum."
+      );
+      return;
+    }
+
     const strategyInstance = StrategyFactory.create(strategy);
-    const generatedTeams = strategyInstance.generate(students, minSize);
+    const generatedTeams = strategyInstance.generate(students, Number(minSize));
     const actionLabel = hasGenerated ? "regenerated" : "generated";
 
     setTeams(generatedTeams);
@@ -357,9 +378,10 @@ export default function DashboardPage() {
                 type="number"
                 min="2"
                 value={workspaceMaxGroupSize}
-                onChange={(e) =>
-                  setWorkspaceMaxGroupSize(Number(e.target.value))
-                }
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setWorkspaceMaxGroupSize(value === "" ? "" : Number(value));
+                }}
                 style={{
                   width: "100%",
                   padding: "10px 12px",
@@ -477,7 +499,8 @@ export default function DashboardPage() {
                     <strong>Max Group Size:</strong> {activeWorkspace.teamSize}
                   </p>
                   <p style={{ margin: 0, color: "#374151" }}>
-                    <strong>Saved Teams:</strong> {activeWorkspace.teams?.length || 0}
+                    <strong>Saved Teams:</strong>{" "}
+                    {activeWorkspace.teams?.length || 0}
                   </p>
                 </div>
               )}
@@ -512,8 +535,12 @@ export default function DashboardPage() {
               </label>
               <input
                 type="number"
+                min="1"
                 value={minSize}
-                onChange={(e) => setMinSize(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setMinSize(value === "" ? "" : Number(value));
+                }}
                 style={{
                   width: "100%",
                   padding: "10px 12px",
@@ -538,8 +565,12 @@ export default function DashboardPage() {
               </label>
               <input
                 type="number"
+                min="1"
                 value={maxSize}
-                onChange={(e) => setMaxSize(parseInt(e.target.value))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  setMaxSize(value === "" ? "" : Number(value));
+                }}
                 style={{
                   width: "100%",
                   padding: "10px 12px",
@@ -751,7 +782,7 @@ export default function DashboardPage() {
             </p>
           )}
 
-          {hasGenerated && (
+          {hasGenerated && lastGeneratedStrategy && (
             <p style={{ marginTop: 0, marginBottom: "16px", color: "#374151" }}>
               <strong>Last Generated Using:</strong>{" "}
               {formatStrategyName(lastGeneratedStrategy)}
@@ -803,24 +834,19 @@ export default function DashboardPage() {
                 <strong>Workspace Code:</strong> {activeWorkspace.inviteCode}
               </p>
               <p style={{ color: "#374151" }}>
-                <strong>Saved Team Count:</strong> {activeWorkspace.teams?.length || 0}
+                <strong>Saved Team Count:</strong>{" "}
+                {activeWorkspace.teams?.length || 0}
               </p>
             </>
           )}
 
           <p style={{ color: "#374151" }}>
-            <strong>Team Size:</strong> {minSize} - {maxSize}
+            <strong>Team Size:</strong>{" "}
+            {minSize === "" ? "-" : minSize} - {maxSize === "" ? "-" : maxSize}
           </p>
 
           <p style={{ color: "#374151" }}>
-            <strong>Strategy:</strong>{" "}
-            {strategy === "WeightedHybridStrategy"
-              ? "Weighted Hybrid"
-              : strategy === "AvailabilityOnlyStrategy"
-              ? "Availability Only"
-              : strategy === "SkillBalancedStrategy"
-              ? "Skill Balanced"
-              : strategy}
+            <strong>Strategy:</strong> {formatStrategyName(strategy)}
           </p>
 
           <p style={{ color: "#374151", marginBottom: "8px" }}>
