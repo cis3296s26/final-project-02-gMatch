@@ -152,6 +152,23 @@ export default function WorkspaceDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Manage Survey & Teams */}
+          <Card className="mb-6">
+            <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold">Survey & Team Matching</h2>
+                <p className="text-sm text-muted-foreground">
+                  Create survey questions, view responses, and generate teams.
+                </p>
+              </div>
+              <Link href={`/instructor?workspaceId=${id}`}>
+                <Button className="gap-2">
+                  Manage Survey & Teams →
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Edit Section */}
             <Card>

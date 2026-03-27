@@ -2,6 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { KeyRound, Users, FolderOpen, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -146,28 +147,33 @@ export default function ParticipantDashboard() {
           ) : (
             <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {workspaces.map((ws) => (
-                <Card key={ws._id} className="border">
-                  <CardContent className="p-5">
-                    <div className="flex items-start justify-between">
-                      <h3 className="font-semibold text-lg">{ws.name}</h3>
-                      <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                        Joined
-                      </span>
-                    </div>
-                    {ws.organizerId && (
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Organized by {ws.organizerId.name || ws.organizerId.email}
-                      </p>
-                    )}
-                    <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1.5">
-                        <Users className="h-4 w-4" />
-                        {ws.participants?.length || 0} participants
+                <Link key={ws._id} href={`/participant/survey?workspaceId=${ws._id}`}>
+                  <Card className="cursor-pointer border transition-colors hover:border-primary">
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between">
+                        <h3 className="font-semibold text-lg">{ws.name}</h3>
+                        <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                          Joined
+                        </span>
                       </div>
-                      <div>Team size: {ws.teamSize}</div>
-                    </div>
-                  </CardContent>
-                </Card>
+                      {ws.organizerId && (
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Organized by {ws.organizerId.name || ws.organizerId.email}
+                        </p>
+                      )}
+                      <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
+                        <div className="flex items-center gap-1.5">
+                          <Users className="h-4 w-4" />
+                          {ws.participants?.length || 0} participants
+                        </div>
+                        <div>Team size: {ws.teamSize}</div>
+                      </div>
+                      <p className="mt-3 text-sm text-primary font-medium">
+                        Fill out survey →
+                      </p>
+                    </CardContent>
+                  </Card>
+                </Link>
               ))}
             </div>
           )}
