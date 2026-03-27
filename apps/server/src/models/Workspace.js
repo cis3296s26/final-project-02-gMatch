@@ -39,6 +39,12 @@ const workspaceSchema = new mongoose.Schema(
       minlength: 6,
       maxlength: 6,
     },
+    participants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
     status: {
       type: String,
       enum: ["open", "matching", "published"],
