@@ -27,7 +27,8 @@ export default function ParticipantDashboard() {
   async function fetchWorkspaces() {
     try {
       const res = await fetch(
-        `${API_URL}/api/workspaces/participant?email=${encodeURIComponent(session.user.email)}`
+        `${API_URL}/api/workspaces/participant?email=${encodeURIComponent(session.user.email)}`,
+        { credentials: "include" }
       );
       if (res.ok) {
         const data = await res.json();
