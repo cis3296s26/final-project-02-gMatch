@@ -1,7 +1,7 @@
 const express = require("express");
 const Workspace = require("../models/Workspace");
-
 const router = express.Router();
+const { requireAuth } = require("../middleware/auth");
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -28,9 +28,11 @@ async function generateUniqueInviteCode() {
 }
 
 // GET all workspaces
-router.get("/", async (_req, res) => {
+router.get("/", requireAuth, async (_req, res) => {
   try {
-    const workspaces = await Workspace.find().sort({ createdAt: 1 });
+    const workspaces = await Workspace.find({
+      organizerId: _req.user.id,
+    }).sort({ createdAt: 1 });
     res.json({ workspaces });
   } catch (error) {
     res.status(500).json({
@@ -41,7 +43,7 @@ router.get("/", async (_req, res) => {
 });
 
 // POST create workspace
-router.post("/", async (req, res) => {
+router.post("/", requireAuth, async (req, res) => {
   try {
     const { name, teamSize } = req.body;
 
@@ -58,7 +60,7 @@ router.post("/", async (req, res) => {
     const inviteCode = await generateUniqueInviteCode();
 
     const workspace = await Workspace.create({
-      organizerId: "000000000000000000000000",
+      organizerId: req.user.id,
       name: name.trim(),
       teamSize: Number(teamSize),
       inviteCode,
@@ -90,7 +92,7 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.patch("/:id", async (req, res) => {
+router.patch("/:id", requireAuth, async (req, res) => {
   try {
     const { name, teamSize } = req.body;
     const update = {};

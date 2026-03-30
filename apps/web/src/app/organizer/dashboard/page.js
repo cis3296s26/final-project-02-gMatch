@@ -32,7 +32,8 @@ export default function OrganizerDashboard() {
   async function fetchWorkspaces() {
     try {
       const res = await fetch(
-        `${API_URL}/api/workspaces?organizerEmail=${encodeURIComponent(session.user.email)}`
+        `${API_URL}/api/workspaces?organizerEmail=${encodeURIComponent(session.user.email)}`,
+        { credentials: "include" }
       );
       if (res.ok) {
         const data = await res.json();
@@ -55,6 +56,7 @@ export default function OrganizerDashboard() {
       const res = await fetch(`${API_URL}/api/workspaces`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify({
           organizerEmail: session.user.email,
           name: newName.trim(),
