@@ -4,10 +4,10 @@ import User from "../models/User.js";
 export async function requireAuth(req, res, next) {
   try {
     const token =
-      req.cookies["authjs.session-token"] ||
-      req.cookies["__Secure-authjs.session-token"];
+      req.cookies["__Secure-authjs.session-token"] ||
+      req.cookies["authjs.session-token"];
 
-    if (!token) return res.status(401).json({ error: "Unauthorizedz" });
+    if (!token) return res.status(401).json({ error: "Unauthorizedz == " + token });
 
     const saltStr = 'authjs.session-token';
 
