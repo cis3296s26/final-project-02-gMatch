@@ -8,7 +8,7 @@ export async function requireAuth(req, res, next) {
       req.cookies["__Secure-authjs.session-token"] ||
       req.cookies["authjs.session-token"];
 
-    if (!token) return res.status(401).json({ error: "Unauthorizedz == " + json.stringify(req.cookies) });
+    if (!token) return res.status(401).json({ error: "Unauthorizedz == " + JSON.stringify(req.cookies) });
 
     const saltStr = 'authjs.session-token';
 
