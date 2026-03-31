@@ -15,11 +15,14 @@ export async function requireAuth(req, res, next) {
       salt: 'authjs.session-token',
     });
 
+    console.log('pay', payload);
     if (!payload) return res.status(401).json({ error: "Unauthorized" });
 
     // get user id using email from payload
     const usr = await User.findOne({ email: payload.email });
 
+    console.log('usr', usr);
+  
     if (!usr) return res.status(401).json({ error: "Unauthorized" });
 
     req.user = { ...payload, id: usr._id };
