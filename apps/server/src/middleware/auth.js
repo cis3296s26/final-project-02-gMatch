@@ -7,7 +7,7 @@ export async function requireAuth(req, res, next) {
       req.cookies["authjs.session-token"] ||
       req.cookies["__Secure-authjs.session-token"];
 
-    if (!token) return res.status(401).json({ error: "Unauthorized" });
+    if (!token) return res.status(401).json({ error: "Unauthorizedz" });
 
     const saltStr = 'authjs.session-token';
 
@@ -21,7 +21,7 @@ export async function requireAuth(req, res, next) {
       salt: saltStr,
     });
 
-    if (!payload) return res.status(401).json({ error: "Unauthorized" });
+    if (!payload) return res.status(401).json({ error: "Unauthorize" });
 
     // get user id using email from payload
     const usr = await User.findOne({ email: payload.email });
