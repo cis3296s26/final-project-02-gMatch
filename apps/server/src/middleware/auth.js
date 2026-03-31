@@ -16,7 +16,7 @@ export async function requireAuth(req, res, next) {
     const payload = await decode({
       token,
       secret: process.env.NEXTAUTH_SECRET,
-      salt: saltStr,
+      salt: process.env.AUTH_SALT || '',
     });
 
     if (!payload) return res.status(401).json({ error: "Unauthorized" });

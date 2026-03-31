@@ -56,7 +56,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       const accessToken = await encode({
         token,
         secret: process.env.NEXTAUTH_SECRET,
-        salt: process.env.NODE_ENV === "production" ? "__Secure-authjs.session-token" : "authjs.session-token",
+        salt: process.env.AUTH_SALT || '',
       });
      
       if (session?.user?.email) {
