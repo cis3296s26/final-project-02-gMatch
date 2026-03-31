@@ -58,7 +58,10 @@ export default function OrganizerDashboard() {
     try {
       const res = await fetch(`${API_URL}/api/workspaces`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.token || ''}`
+        },
         credentials: "include",
         body: JSON.stringify({
           organizerEmail: session.user.email,
