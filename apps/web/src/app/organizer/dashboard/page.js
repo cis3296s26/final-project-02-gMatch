@@ -33,7 +33,10 @@ export default function OrganizerDashboard() {
     try {
       const res = await fetch(
         `${API_URL}/api/workspaces?organizerEmail=${encodeURIComponent(session.user.email)}`,
-        { credentials: "include" }
+        {
+          headers: { 'Authorization': `Bearer ${session.token || ''}` },
+          credentials: "include",
+        }
       );
       if (res.ok) {
         const data = await res.json();

@@ -3,11 +3,7 @@ import User from "../models/User.js";
 
 export async function requireAuth(req, res, next) {
   try {
-    const token =
-      req.cookies["__Secure-authjs.session-token"] ||
-      req.cookies["authjs.session-token"];
-
-      console.error(req.cookies);
+    const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) return res.status(401).json({ error: "Unauthorized" });
 

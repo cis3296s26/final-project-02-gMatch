@@ -1,6 +1,7 @@
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
+import { encode } from "next-auth/jwt";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
@@ -51,7 +52,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       return true;
     },
-    async session({ session }) {
+    async session({ session, token }) {
+      const accessToken = await encode({
+        token,
+        secret: process.env.NEXTAUTH_SECRET,
+        salt: process.env.NODE_ENV === "production" ? "__Secure-authjs.session-token" : "authjs.session-token",
+      });
+     
       if (session?.user?.email) {
         try {
           const res = await fetchWithTimeout(
@@ -61,6 +68,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             const dbUser = await res.json();
             session.user.id = dbUser._id;
             session.user.role = dbUser.role;
+            session.token = accessToken; // Include the token in the session for API calls
           }
         } catch (err) {
           // Timeout or connection error — return session without DB data
