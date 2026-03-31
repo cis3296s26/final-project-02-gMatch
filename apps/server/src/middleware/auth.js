@@ -1,5 +1,6 @@
 import { decode } from "next-auth/jwt";
 import User from "../models/User.js";
+import { json } from "express";
 
 export async function requireAuth(req, res, next) {
   try {
@@ -7,7 +8,7 @@ export async function requireAuth(req, res, next) {
       req.cookies["__Secure-authjs.session-token"] ||
       req.cookies["authjs.session-token"];
 
-    if (!token) return res.status(401).json({ error: "Unauthorizedz == " + token });
+    if (!token) return res.status(401).json({ error: "Unauthorizedz == " + json.stringify(req.cookies) });
 
     const saltStr = 'authjs.session-token';
 
