@@ -97,4 +97,42 @@ router.patch("/role", async (req, res) => {
   }
 });
 
+/**
+ * PATCH /api/auth/profile
+ * Updates name, bio, and portfolioUrls for the authenticated user.
+ */
+router.patch("/profile", async (req, res) => {
+  try {
+    const { email, name, bio, portfolioUrls } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+
+    const update = {};
+    if (name !== undefined) update.name = name.trim();
+    if (bio !== undefined) update.bio = bio.trim().slice(0, 160);
+    if (Array.isArray(portfolioUrls)) {
+      update.portfolioUrls = portfolioUrls
+        .map((u) => u.trim())
+        .filter((u) => u.length > 0);
+    }
+
+    const user = await User.findOneAndUpdate(
+      { email },
+      update,
+      { new: true, runValidators: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    res.json(user);
+  } catch (err) {
+    console.error("[Auth] Profile update error:", err.message);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+
 module.exports = router;
