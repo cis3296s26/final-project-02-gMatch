@@ -23,6 +23,12 @@ const userSchema = new mongoose.Schema(
       enum: ["organizer", "participant"],
       default: null,
     },
+    bio: {
+      type: String,
+      default: "",
+      maxlength: 160,
+      trim: true,
+    },
     portfolioUrls: {
       type: [String],
       default: [],
