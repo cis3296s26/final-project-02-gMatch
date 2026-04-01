@@ -27,8 +27,11 @@ export default function ParticipantDashboard() {
   async function fetchWorkspaces() {
     try {
       const res = await fetch(
-        `${API_URL}/api/workspaces/participant?email=${encodeURIComponent(session.user.email)}`,
-        { credentials: "include" }
+        `${API_URL}/api/workspaces/participant`,
+        {
+          headers: { 'Authorization': `Bearer ${session.token || ''}` },
+          credentials: "include",
+        }
       );
       if (res.ok) {
         const data = await res.json();
@@ -50,7 +53,10 @@ export default function ParticipantDashboard() {
     try {
       const res = await fetch(`${API_URL}/api/workspaces/join`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.token || ''}`
+        },
         body: JSON.stringify({
           inviteCode: inviteCode.trim(),
           participantEmail: session.user.email,

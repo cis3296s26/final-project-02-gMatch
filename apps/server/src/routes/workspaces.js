@@ -76,9 +76,28 @@ router.post("/", requireAuth, async (req, res) => {
   }
 });
 
+// get workspaces for a specific participant
+router.get("/participant", requireAuth, async (_req, res) => {
+  try {
+    const workspaces = await Workspace.find({
+      "teams.members": _req.user.id,
+    }).sort({ createdAt: 1 });
+
+    console.log(workspaces);
+    
+    res.json({ workspaces });
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to load workspaces",
+      error: error.message
+    });
+  }
+});
+
 // GET single workspace by ID
 router.get("/:id", async (req, res) => {
   try {
+    console.log('hello');
     const workspace = await Workspace.findById(req.params.id);
     if (!workspace) {
       return res.status(404).json({ message: "Workspace not found" });
