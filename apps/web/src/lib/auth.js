@@ -62,7 +62,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (session?.user?.email) {
         try {
           const res = await fetchWithTimeout(
-            `${API_URL}/api/auth/me?email=${encodeURIComponent(session.user.email)}`
+            `${API_URL}/api/auth/me`
+            , {
+              headers: { 'Authorization': `Bearer ${accessToken}` },
+              credentials: "include",
+            }
           );
           if (res.ok) {
             const dbUser = await res.json();

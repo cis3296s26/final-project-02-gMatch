@@ -287,6 +287,9 @@ export default function DashboardPage() {
 
   const addQuestion = () => {
     if (newQuestion.trim() !== "") {
+
+      // TODO: persist to server
+      
       setQuestions([...questions, newQuestion]);
       setNewQuestion("");
     }
