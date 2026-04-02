@@ -22,6 +22,22 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+const Response = require("./models/Response");
+
+app.post("/api/response", async (req, res) => {
+  try {
+    console.log("Incoming data:", req.body);
+
+    const newResponse = new Response(req.body);
+    await newResponse.save();
+
+    res.json({ message: "Saved successfully!" });
+  } catch (err) {
+    console.error("Error saving:", err);
+    res.status(500).json({ error: "Failed to save" });
+  }
+});
+
 // --------------- Start ---------------
 const PORT = process.env.PORT || 5001;
 

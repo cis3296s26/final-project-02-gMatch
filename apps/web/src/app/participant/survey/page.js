@@ -22,16 +22,35 @@ export default function SurveyPage() {
       { id: "availability", label: "Availability", type: "availability" },
     ];
 
-    function handleSubmit(e){
-        e.preventDefault();
+    async function handleSubmit(e) {
+      e.preventDefault();
 
-        console.log({ name, skills, availability: availabilityList });
+      if (name && skills.length > 0 && availabilityList.length > 0) {
+        const responseData = {
+          workspaceId: "507f1f77bcf86cd799439011", //temporary ID replace with workspaceid and participant id later
+          participantId: "507f1f77bcf86cd799439012",
+          answers: [
+            { questionId: "name", value: name },
+            { questionId: "skills", value: skills },
+            { questionId: "availability", value: availabilityList },
+          ],
+        };
 
-        if (name && skills.length > 0 && availabilityList.length > 0) {
-          setSubmitted(true);
-        } else {
-          alert("Please answer all questions");
-        }
+        const res = await fetch("http://localhost:5001/api/response", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(responseData),
+        });
+
+        const data = await res.json();
+        console.log(data);
+
+        setSubmitted(true);
+      } else {
+        alert("Please answer all questions");
+      }
     }
 
     function handleAddSkill(e) {
