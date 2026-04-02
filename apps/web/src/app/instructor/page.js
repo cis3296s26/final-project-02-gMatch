@@ -71,7 +71,8 @@ export default function DashboardPage() {
 
     try {
       const response = await fetch(`${API_BASE_URL}/api/workspaces`, {
-        credentials: "include"
+        credentials: "include",
+        headers: { 'Authorization': `Bearer ${session.token || ''}` },
       });
 
       if (!response.ok) {
@@ -147,7 +148,8 @@ export default function DashboardPage() {
       const response = await fetch(`${API_BASE_URL}/api/workspaces`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${session.token || ''}`
         },
         credentials: "include",
         body: JSON.stringify(payload)
@@ -220,7 +222,8 @@ export default function DashboardPage() {
       {
         method: "PUT",
         headers: {
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${session.token || ''}`
         },
         credentials: "include",
         body: JSON.stringify({ teams: generatedTeams })
@@ -306,55 +309,10 @@ export default function DashboardPage() {
 
       <div className="instructor-page">
         <div className="instructor-container">
-          <h2 className="instructor-title">Instructor Dashboard</h2>
+          <h2 className="instructor-title">Manage Workspace</h2>
 
           <div className="instructor-card">
-            <h3>Create Workspace</h3>
-
-            <div className="instructor-row">
-              <div className="instructor-field-wide">
-                <label className="instructor-label">Workspace Name</label>
-                <input
-                  className="instructor-input"
-                  type="text"
-                  value={workspaceName}
-                  onChange={(e) => setWorkspaceName(e.target.value)}
-                  placeholder="Ex: CIS 4398 Section 1"
-                />
-              </div>
-
-              <div className="instructor-field">
-                <label className="instructor-label">Max Group Size</label>
-                <input
-                  className="instructor-input"
-                  type="number"
-                  min="2"
-                  value={workspaceMaxGroupSize}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    setWorkspaceMaxGroupSize(value === "" ? "" : Number(value));
-                  }}
-                />
-              </div>
-            </div>
-
-            <div style={{ marginTop: "16px" }}>
-              <button
-                className="instructor-button"
-                onClick={createWorkspace}
-                disabled={isCreatingWorkspace}
-              >
-                {isCreatingWorkspace ? "Creating..." : "Create Workspace"}
-              </button>
-            </div>
-
-            {workspaceMessage && (
-              <p className="instructor-message">{workspaceMessage}</p>
-            )}
-          </div>
-
-          <div className="instructor-card">
-            <h3>Workspaces</h3>
+            <h3>Workspace</h3>
 
             {workspaces.length === 0 ? (
               <p className="instructor-muted">

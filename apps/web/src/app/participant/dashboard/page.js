@@ -35,7 +35,8 @@ export default function ParticipantDashboard() {
       );
       if (res.ok) {
         const data = await res.json();
-        setWorkspaces(data);
+
+        setWorkspaces(data.workspaces || []);
       }
     } catch (err) {
       console.error("Failed to fetch workspaces:", err);
@@ -46,9 +47,12 @@ export default function ParticipantDashboard() {
 
   async function handleJoin(e) {
     e.preventDefault();
+    console.log('hello');
     if (!inviteCode.trim()) return;
     setJoining(true);
     setError("");
+
+    console.log('here');
 
     try {
       const res = await fetch(`${API_URL}/api/workspaces/join`, {
@@ -123,7 +127,7 @@ export default function ParticipantDashboard() {
                     className="w-36 bg-transparent text-sm uppercase tracking-widest outline-none placeholder:text-muted-foreground/60 placeholder:normal-case placeholder:tracking-normal"
                   />
                 </div>
-                <Button className="gap-2" disabled={joining || !inviteCode.trim()}>
+                <Button type="submit" className="gap-2" disabled={joining || !inviteCode.trim()}>
                   {joining ? "Joining..." : "Join Workspace"}
                 </Button>
               </form>

@@ -76,14 +76,52 @@ router.post("/", requireAuth, async (req, res) => {
   }
 });
 
+// POST join workspace by invite code
+router.post("/join", requireAuth, async (req, res) => {
+  try {
+    const { inviteCode } = req.body;
+
+    if (!inviteCode || !inviteCode.trim()) {
+      return res.status(400).json({ message: "Invite code is required" });
+    }
+
+    const workspace = await Workspace.findOne({ inviteCode: inviteCode.trim() });
+
+    if (!workspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+
+    if (!workspace.participants) workspace.participants = [];
+
+    // Check if participant is already in a team
+    const alreadyJoined = workspace.participants.some(participant =>
+      participant === req.user.id
+    );
+
+    if (alreadyJoined) {
+      return res.status(400).json({ message: "You have already joined this workspace" });
+    }
+
+    // Add participant to the workspace
+    workspace.participants.push(req.user.id);
+
+    await workspace.save();
+
+    return res.json({ message: "Joined workspace successfully" });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to join workspace",
+      error: error.message
+    });
+  }
+});
+
 // get workspaces for a specific participant
 router.get("/participant", requireAuth, async (_req, res) => {
   try {
     const workspaces = await Workspace.find({
-      "teams.members": _req.user.id,
+      participants: { $in: [_req.user.id] },
     }).sort({ createdAt: 1 });
-
-    console.log(workspaces);
     
     res.json({ workspaces });
   } catch (error) {
@@ -97,7 +135,6 @@ router.get("/participant", requireAuth, async (_req, res) => {
 // GET single workspace by ID
 router.get("/:id", async (req, res) => {
   try {
-    console.log('hello');
     const workspace = await Workspace.findById(req.params.id);
     if (!workspace) {
       return res.status(404).json({ message: "Workspace not found" });
