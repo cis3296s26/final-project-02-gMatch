@@ -1,0 +1,391 @@
+.pageShell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: hsl(var(--background));
+    }
+
+.loadingWrap {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    }
+
+.page {
+    width: 100%;
+    max-width: 42rem;
+    margin: 0 auto;
+    padding: 2.5rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    }
+
+.pageHeader {
+    display: flex;
+    flex-direction: column;
+}
+
+.pageTitle {
+    font-size: 1.5rem;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.pageSubtitle {
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+}
+
+.mutedText {
+    color: hsl(var(--muted-foreground));
+}
+
+.toastWrap {
+    position: fixed;
+    top: 1.25rem;
+    left: 50%;
+    z-index: 200;
+    min-width: 320px;
+    transform: translateX(-50%);
+}
+
+.toast {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-width: 1px;
+    border-style: solid;
+    border-radius: 1rem;
+    padding: 1rem 1.25rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+.toastSuccess {
+    border-color: rgb(187 247 208);
+    background: rgb(240 253 244);
+    color: rgb(22 101 52);
+}
+
+.toastError {
+    border-color: rgb(254 202 202);
+    background: rgb(254 242 242);
+    color: rgb(153 27 27);
+}
+
+.toastIconSuccess,
+.toastIconError {
+    width: 1.25rem;
+    height: 1.25rem;
+    flex-shrink: 0;
+}
+
+.toastIconSuccess {
+    color: rgb(22 163 74);
+}
+
+.toastIconError {
+    color: rgb(239 68 68);
+}
+
+.toastMessage {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.toastClose {
+    margin-left: auto;
+    border-radius: 0.5rem;
+    padding: 0.25rem;
+    opacity: 0.6;
+    transition: opacity 0.2s ease;
+}
+
+.toastClose:hover {
+    opacity: 1;
+}
+
+.toastCloseIcon {
+    width: 1rem;
+    height: 1rem;
+}
+
+.sectionCard {
+    overflow: hidden;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    border-bottom: 1px solid hsl(var(--border));
+    padding: 1rem 1.5rem;
+}
+
+.sectionIconWrap {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.5rem;
+    background: hsl(var(--primary) / 0.1);
+}
+
+.sectionIcon {
+    width: 1rem;
+    height: 1rem;
+    color: hsl(var(--primary));
+}
+
+.sectionTitle {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.sectionContent {
+    padding: 1.5rem;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.375rem;
+}
+
+.fieldLabel {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: hsl(var(--foreground));
+}
+
+.fieldHint {
+    font-size: 0.75rem;
+    color: hsl(var(--muted-foreground));
+}
+
+.profileTop {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.avatar {
+    width: 4rem;
+    height: 4rem;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    background: hsl(var(--primary) / 0.1);
+    color: hsl(var(--primary));
+    font-size: 1.25rem;
+    font-weight: 700;
+    box-shadow: 0 0 0 2px hsl(var(--primary) / 0.2);
+    overflow: hidden;
+}
+
+.avatarImage {
+    width: 4rem;
+    height: 4rem;
+    border-radius: 9999px;
+    object-fit: cover;
+}
+
+.profileMeta {
+    min-width: 0;
+}
+
+.displayName {
+    font-weight: 600;
+}
+
+.profileEmail {
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+}
+
+.roleBadge {
+    margin-top: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    border-radius: 9999px;
+    background: hsl(var(--primary) / 0.1);
+    padding: 0.125rem 0.625rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: hsl(var(--primary));
+}
+
+.formStack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.nameGrid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+}
+
+.input,
+.textarea,
+.linkInput {
+    width: 100%;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.75rem;
+    background: hsl(var(--background));
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+    outline: none;
+    transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease;
+}
+
+.input:focus,
+.textarea:focus,
+.linkInput:focus {
+    border-color: hsl(var(--primary));
+    box-shadow: 0 0 0 3px hsl(var(--primary) / 0.2);
+}
+
+.textarea {
+    resize: none;
+}
+
+.linksStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.linkRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.removeButton {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.removeButton:hover {
+  border-color: rgb(252 165 165);
+  color: rgb(239 68 68);
+}
+
+.removeIcon,
+.buttonIcon {
+  width: 1rem;
+  height: 1rem;
+}
+
+.addButton,
+.signOutButton,
+.actionButton {
+  border-radius: 0.75rem;
+}
+
+.accountStack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.accountRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.accountLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.accountValue {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.oauthBadge {
+  border-radius: 9999px;
+  background: hsl(var(--muted));
+  padding: 0.25rem 0.625rem;
+  font-size: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  white-space: nowrap;
+}
+
+.changeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.875rem;
+  color: hsl(var(--primary));
+}
+
+.changeButton:hover {
+  text-decoration: underline;
+}
+
+.changeIcon {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-bottom: 2.5rem;
+}
+
+@media (max-width: 640px) {
+  .page {
+    padding-top: 1.5rem;
+  }
+
+  .nameGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .profileTop,
+  .accountRow,
+  .actions {
+    align-items: flex-start;
+  }
+
+  .accountRow,
+  .actions {
+    flex-direction: column;
+  }
+
+.toastWrap {
+    min-width: auto;
+    width: calc(100% - 2rem);
+}
+}
