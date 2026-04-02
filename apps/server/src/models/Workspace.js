@@ -22,6 +22,12 @@ const workspaceSchema = new mongoose.Schema(
       required: true,
       unique: true
     },
+    participants: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User"
+      }
+    ],
 
     //store generated teams inside the workspace
     teams: {

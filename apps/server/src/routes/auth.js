@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../models/User");
+const { requireAuth } = require("../middleware/auth");
 
 /**
  * POST /api/auth/login
@@ -31,6 +32,7 @@ router.post("/login", async (req, res) => {
       if (avatar) user.avatar = avatar;
       if (oauthProvider) user.oauthProvider = oauthProvider;
       if (oauthId) user.oauthId = oauthId;
+
       await user.save();
     }
 
@@ -45,14 +47,16 @@ router.post("/login", async (req, res) => {
  * GET /api/auth/me?email=...
  * Returns the user document for the given email.
  */
-router.get("/me", async (req, res) => {
+router.get("/me", requireAuth, async (req, res) => {
   try {
-    const { email } = req.query;
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
-    }
+    const userId = req.user?.id;
+    // const { email } = req.query;
+    // if (!email) {
+    //   return res.status(400).json({ error: "Email is required" });
+    // }
 
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ _id: userId });
+
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -101,17 +105,19 @@ router.patch("/role", async (req, res) => {
  * PATCH /api/auth/profile
  * Updates name, bio, and portfolioUrls for the authenticated user.
  */
-router.patch("/profile", async (req, res) => {
+router.patch("/profile", requireAuth, async (req, res) => {
   try {
-    const { email, name, bio, portfolioUrls } = req.body;
+    const { name, bio, portfolioUrls } = req.body;
 
-    if (!email) {
-      return res.status(400).json({ error: "Email is required" });
-    }
+      // if (!email) {
+      //   return res.status(400).json({ error: "Email is required" });
+      // }
 
     const update = {};
+
     if (name !== undefined) update.name = name.trim();
     if (bio !== undefined) update.bio = bio.trim().slice(0, 160);
+  
     if (Array.isArray(portfolioUrls)) {
       update.portfolioUrls = portfolioUrls
         .map((u) => u.trim())
@@ -119,7 +125,7 @@ router.patch("/profile", async (req, res) => {
     }
 
     const user = await User.findOneAndUpdate(
-      { email },
+      { _id: req.user.id },
       update,
       { new: true, runValidators: true }
     );

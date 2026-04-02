@@ -30,7 +30,12 @@ export default function WorkspaceDetailPage() {
 
   async function fetchWorkspace() {
     try {
-      const res = await fetch(`${API_URL}/api/workspaces/${id}`);
+      const res = await fetch(`${API_URL}/api/workspaces/${id}`
+        , {
+          // headers: { 'Authorization': `Bearer ${session.token || ''}` },
+          credentials: "include",
+        }
+      );
       if (res.ok) {
         const data = await res.json();
         setWorkspace(data);
@@ -49,7 +54,10 @@ export default function WorkspaceDetailPage() {
     try {
       const res = await fetch(`${API_URL}/api/workspaces/${id}`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          'Authorization': `Bearer ${session.token || ''}`
+        },
         body: JSON.stringify({ name: editName, teamSize: editTeamSize }),
       });
       if (res.ok) {
@@ -68,6 +76,7 @@ export default function WorkspaceDetailPage() {
     try {
       const res = await fetch(`${API_URL}/api/workspaces/${id}`, {
         method: "DELETE",
+        headers: { 'Authorization': `Bearer ${session.token || ''}` },
       });
       if (res.ok) {
         router.push("/organizer/dashboard");

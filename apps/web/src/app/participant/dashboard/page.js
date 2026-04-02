@@ -27,12 +27,16 @@ export default function ParticipantDashboard() {
   async function fetchWorkspaces() {
     try {
       const res = await fetch(
-        `${API_URL}/api/workspaces/participant?email=${encodeURIComponent(session.user.email)}`,
-        { credentials: "include" }
+        `${API_URL}/api/workspaces/participant`,
+        {
+          headers: { 'Authorization': `Bearer ${session.token || ''}` },
+          credentials: "include",
+        }
       );
       if (res.ok) {
         const data = await res.json();
-        setWorkspaces(data);
+
+        setWorkspaces(data.workspaces || []);
       }
     } catch (err) {
       console.error("Failed to fetch workspaces:", err);
@@ -43,14 +47,20 @@ export default function ParticipantDashboard() {
 
   async function handleJoin(e) {
     e.preventDefault();
+    console.log('hello');
     if (!inviteCode.trim()) return;
     setJoining(true);
     setError("");
 
+    console.log('here');
+
     try {
       const res = await fetch(`${API_URL}/api/workspaces/join`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${session.token || ''}`
+        },
         body: JSON.stringify({
           inviteCode: inviteCode.trim(),
           participantEmail: session.user.email,
@@ -117,7 +127,7 @@ export default function ParticipantDashboard() {
                     className="w-36 bg-transparent text-sm uppercase tracking-widest outline-none placeholder:text-muted-foreground/60 placeholder:normal-case placeholder:tracking-normal"
                   />
                 </div>
-                <Button className="gap-2" disabled={joining || !inviteCode.trim()}>
+                <Button type="submit" className="gap-2" disabled={joining || !inviteCode.trim()}>
                   {joining ? "Joining..." : "Join Workspace"}
                 </Button>
               </form>

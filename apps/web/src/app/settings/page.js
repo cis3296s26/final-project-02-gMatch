@@ -108,18 +108,28 @@ export default function SettingsPage() {
     if (!session?.user?.email) return;
 
     // Split existing name into first/last
-    const parts = (session.user.name || "").split(" ");
-    setFirstName(parts[0] || "");
-    setLastName(parts.slice(1).join(" ") || "");
+    let nameArr = (session.user.name || "").split(" ");
+    setFirstName(nameArr[0] || "");
+    setLastName(nameArr.slice(1).join(" ") || "");
 
     // Fetch full user doc from backend for portfolioUrls & bio
-    fetch(`${API_URL}/api/auth/me?email=${encodeURIComponent(session.user.email)}`)
+    fetch(`${API_URL}/api/auth/me`
+      , {
+        headers: { 'Authorization': `Bearer ${session.token || ''}` },
+        credentials: "include",
+       }
+    )
       .then((r) => r.ok ? r.json() : null)
       .then((dbUser) => {
         if (!dbUser) return;
         if (dbUser.portfolioUrls?.length) {
           setPortfolioUrls(dbUser.portfolioUrls);
         }
+
+        nameArr = (dbUser.name || "").split(" ");
+        setFirstName(nameArr[0] || "");
+        setLastName(nameArr.slice(1).join(" ") || "");
+
         if (dbUser.bio) setBio(dbUser.bio);
       })
       .catch(() => {});
