@@ -108,18 +108,28 @@ export default function SettingsPage() {
     if (!session?.user?.email) return;
 
     // Split existing name into first/last
-    const parts = (session.user.name || "").split(" ");
-    setFirstName(parts[0] || "");
-    setLastName(parts.slice(1).join(" ") || "");
+    let nameArr = (session.user.name || "").split(" ");
+    setFirstName(nameArr[0] || "");
+    setLastName(nameArr.slice(1).join(" ") || "");
 
     // Fetch full user doc from backend for portfolioUrls & bio
-    fetch(`${API_URL}/api/auth/me?email=${encodeURIComponent(session.user.email)}`)
+    fetch(`${API_URL}/api/auth/me`
+      , {
+        headers: { 'Authorization': `Bearer ${session.token || ''}` },
+        credentials: "include",
+       }
+    )
       .then((r) => r.ok ? r.json() : null)
       .then((dbUser) => {
         if (!dbUser) return;
         if (dbUser.portfolioUrls?.length) {
           setPortfolioUrls(dbUser.portfolioUrls);
         }
+
+        nameArr = (dbUser.name || "").split(" ");
+        setFirstName(nameArr[0] || "");
+        setLastName(nameArr.slice(1).join(" ") || "");
+
         if (dbUser.bio) setBio(dbUser.bio);
       })
       .catch(() => {});
@@ -172,7 +182,14 @@ export default function SettingsPage() {
       });
 
       if (res.ok) {
-        await update(); // refresh NextAuth session
+        const saved = await res.json();
+        // Update local state from saved DB doc so UI reflects new name immediately
+        const savedParts = (saved.name || "").split(" ");
+        setFirstName(savedParts[0] || "");
+        setLastName(savedParts.slice(1).join(" ") || "");
+        if (saved.bio !== undefined) setBio(saved.bio);
+        if (saved.portfolioUrls?.length) setPortfolioUrls(saved.portfolioUrls);
+        await update(); // also refresh NextAuth session
         setDirty(false);
         showToast("Settings saved successfully!", "success");
       } else {
@@ -180,7 +197,7 @@ export default function SettingsPage() {
         showToast(body.error || "Failed to save settings.", "error");
       }
     } catch {
-      // Backend may be unreachable — update session name locally
+      // Backend unreachable — still update session with whatever is in state
       await update();
       setDirty(false);
       showToast("Settings saved (offline mode).", "success");
