@@ -8,7 +8,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   User,
-  Mail,
   Shield,
   Link as LinkIcon,
   Plus,
@@ -18,6 +17,7 @@ import {
   LogOut,
   ChevronRight,
 } from "lucide-react";
+import styles from "./settings.module.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
@@ -31,27 +31,27 @@ function Toast({ message, type, onClose }) {
 
   return (
     <div
-      className="fixed top-5 left-1/2 z-[200] -translate-x-1/2 animate-in fade-in slide-in-from-top-2 duration-300"
-      style={{ minWidth: 320 }}
-    >
+      className={styles.toastWrap}>
       <div
-        className={`flex items-center gap-3 rounded-2xl border px-5 py-4 shadow-lg ${
-          isSuccess
-            ? "border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-950 dark:text-green-200"
-            : "border-red-200 bg-red-50 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200"
+        className={`${styles.toast} ${
+          isSuccess ? styles.toastSuccess : styles.toastError
         }`}
       >
         {isSuccess ? (
-          <CheckCircle className="h-5 w-5 shrink-0 text-green-600 dark:text-green-400" />
+          <CheckCircle className={styles.toastIconSuccess} />
         ) : (
-          <AlertCircle className="h-5 w-5 shrink-0 text-red-500" />
+          <AlertCircle className={styles.toastIconError} />
         )}
-        <p className="text-sm font-medium">{message}</p>
+
+        <p className={styles.toastMessage}>{message}</p>
+
         <button
+          type="button"
           onClick={onClose}
-          className="ml-auto rounded-lg p-1 opacity-60 hover:opacity-100 transition"
+          className={styles.toastClose}
+          aria-label="Close notification"
         >
-          <X className="h-4 w-4" />
+          <X className={styles.toastCloseIcon} />
         </button>
       </div>
     </div>
@@ -60,24 +60,24 @@ function Toast({ message, type, onClose }) {
 
 function Section({ icon: Icon, title, children }) {
   return (
-    <Card className="overflow-hidden">
-      <div className="flex items-center gap-3 border-b border-border px-6 py-4">
-        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
-          <Icon className="h-4 w-4 text-primary" />
+    <Card className={styles.sectionCard}>
+      <div className={styles.sectionHeader}>
+        <div className={styles.sectionIconWrap}>
+          <Icon className={styles.sectionIcon} />
         </div>
-        <h2 className="text-base font-semibold">{title}</h2>
+        <h2 className={styles.sectionTitle}>{title}</h2>
       </div>
-      <CardContent className="p-6">{children}</CardContent>
+      <CardContent className={styles.sectionContent}>{children}</CardContent>
     </Card>
   );
 }
 
 function Field({ label, hint, children }) {
   return (
-    <div className="flex flex-col gap-1.5">
-      <label className="text-sm font-medium text-foreground">{label}</label>
+    <div className={styles.field}>
+      <label className={styles.fieldLabel}>{label}</label>
       {children}
-      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {hint && <p className={styles.fieldHint}>{hint}</p>}
     </div>
   );
 }
@@ -206,10 +206,10 @@ export default function SettingsPage() {
   // Loading
   if (status === "loading") {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className={styles.pageShell}>
         <Navbar />
-        <div className="flex flex-1 items-center justify-center">
-          <p className="text-muted-foreground">Loading…</p>
+        <div className={styles.loadingWrap}>
+          <p className={styles.mutedText}>Loading…</p>
         </div>
       </div>
     );
@@ -233,7 +233,7 @@ export default function SettingsPage() {
       : "No role set";
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
+    <div className={styles.pageShell}>
       <Navbar />
 
       {toast && (
@@ -244,11 +244,11 @@ export default function SettingsPage() {
         />
       )}
 
-      <main className="mx-auto w-full max-w-2xl px-4 py-10 space-y-6">
+      <main className={styles.page}>
         {/* Page header */}
-        <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+        <div className={styles.pageHeader}>
+          <h1 className={styles.pageTitle}>Settings</h1>
+          <p className={styles.pageSubtitle}>
             Manage your gMatch profile and account preferences.
           </p>
         </div>
@@ -256,42 +256,41 @@ export default function SettingsPage() {
         {/* ── Profile card ── */}
         <Section icon={User} title="Profile">
           {/* Avatar preview */}
-          <div className="mb-6 flex items-center gap-4">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xl font-bold text-primary ring-2 ring-primary/20">
+          <div className={styles.profileTop}>
+            <div className={styles.avatar}>
               {session?.user?.image ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={session.user.image}
                   alt={displayName}
-                  className="h-16 w-16 rounded-full object-cover"
+                  className={styles.avatarImage}
                 />
               ) : (
                 initials
               )}
             </div>
-            <div>
-              <p className="font-semibold">{displayName}</p>
-              <p className="text-sm text-muted-foreground">{session?.user?.email}</p>
-              <span className="mt-1 inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-                {roleLabel}
-              </span>
+            
+            <div className={styles.profileMeta}>
+              <p className={styles.displayName}>{displayName}</p>
+              <p className={styles.profileEmail}>{session?.user?.email}</p>
+              <span className={styles.roleBadge}>{roleLabel}</span>
             </div>
           </div>
 
-          <div className="space-y-4">
-            {/* Name row */}
-            <div className="grid grid-cols-2 gap-4">
+          <div className={styles.formStack}>
+            <div className={styles.nameGrid}>
               <Field label="First name">
                 <input
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                  className={styles.input}
                   placeholder="Jane"
                   value={firstName}
                   onChange={(e) => markDirty(setFirstName)(e.target.value)}
                 />
               </Field>
+              
               <Field label="Last name">
                 <input
-                  className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                  className={styles.input}
                   placeholder="Doe"
                   value={lastName}
                   onChange={(e) => markDirty(setLastName)(e.target.value)}
@@ -305,7 +304,7 @@ export default function SettingsPage() {
               hint={`${bio.length}/160 characters`}
             >
               <textarea
-                className="w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition resize-none"
+                className={styles.textarea}
                 placeholder="Tell your team a bit about yourself…"
                 rows={3}
                 maxLength={160}
@@ -318,34 +317,38 @@ export default function SettingsPage() {
 
         {/* ── Portfolio URLs ── */}
         <Section icon={LinkIcon} title="Portfolio / Links">
-          <div className="space-y-3">
+          <div className={styles.linksStack}>
             {portfolioUrls.map((url, idx) => (
-              <div key={idx} className="flex items-center gap-2">
+              <div key={idx} className={styles.linkRow}>
                 <input
-                  className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+                  className={styles.linkInput}
                   placeholder="https://github.com/yourhandle"
                   value={url}
                   onChange={(e) => updateUrl(idx, e.target.value)}
                   type="url"
                 />
+
                 {portfolioUrls.length > 1 && (
                   <button
+                    type="button"
                     onClick={() => removeUrl(idx)}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-border text-muted-foreground hover:border-red-300 hover:text-red-500 transition"
+                    className={styles.removeButton}
+                    aria-label={`Remove link ${idx + 1}`}
                   >
-                    <X className="h-4 w-4" />
+                    <X className={styles.removeIcon} />
                   </button>
                 )}
               </div>
             ))}
+
             <Button
               type="button"
               variant="outline"
               size="sm"
-              className="gap-2 rounded-xl"
+              className={styles.addButton}
               onClick={addUrl}
             >
-              <Plus className="h-4 w-4" />
+              <Plus className={styles.buttonIcon} />
               Add link
             </Button>
           </div>
@@ -353,44 +356,41 @@ export default function SettingsPage() {
 
         {/* ── Account / role ── */}
         <Section icon={Shield} title="Account">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
+          <div className={styles.accountStack}>
+            <div className={styles.accountRow}>
               <div>
-                <p className="text-sm font-medium">Email</p>
-                <p className="text-sm text-muted-foreground">{session?.user?.email}</p>
+                <p className={styles.accountLabel}>Email</p>
+                <p className={styles.accountValue}>{session?.user?.email}</p>
               </div>
-              <span className="rounded-full bg-muted px-2.5 py-1 text-xs text-muted-foreground">
-                Via OAuth
-              </span>
+              <span className={styles.oauthBadge}>Via OAuth</span>
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
+            <div className={styles.accountRow}>
               <div>
-                <p className="text-sm font-medium">Role</p>
-                <p className="text-sm text-muted-foreground">{roleLabel}</p>
+                <p className={styles.accountLabel}>Role</p>
+                <p className={styles.accountValue}>{roleLabel}</p>
               </div>
               <button
-                className="flex items-center gap-1 text-sm text-primary hover:underline"
+                type="button"
+                className={styles.changeButton}
                 onClick={() => router.push("/select-role")}
               >
-                Change <ChevronRight className="h-3.5 w-3.5" />
+                Change <ChevronRight className={styles.changeIcon} />
               </button>
             </div>
 
-            <div className="flex items-center justify-between rounded-xl border border-border px-4 py-3">
+            <div className={styles.accountRow}>
               <div>
-                <p className="text-sm font-medium">Sign out</p>
-                <p className="text-sm text-muted-foreground">
-                  Sign out of all devices
-                </p>
+                <p className={styles.accountLabel}>Sign out</p>
+                <p className={styles.accountValue}>Sign out of all devices</p>
               </div>
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 rounded-xl"
+                className={styles.signOutButton}
                 onClick={() => signOut({ callbackUrl: "/" })}
               >
-                <LogOut className="h-4 w-4" />
+                <LogOut className={styles.buttonIcon} />
                 Sign out
               </Button>
             </div>
@@ -398,17 +398,17 @@ export default function SettingsPage() {
         </Section>
 
         {/* ── Actions ── */}
-        <div className="flex items-center justify-end gap-3 pb-10">
+        <div className={styles.actions}>
           <Button
             variant="outline"
-            className="rounded-xl"
+            className={styles.actionButton}
             onClick={handleDiscard}
             disabled={!dirty || saving}
           >
             Discard changes
           </Button>
           <Button
-            className="rounded-xl"
+            className={styles.actionButton}
             onClick={handleSave}
             disabled={saving}
           >
