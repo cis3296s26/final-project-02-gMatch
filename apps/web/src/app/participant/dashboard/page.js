@@ -3,11 +3,11 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { KeyRound, Users, Loader2, LogOut, CheckCircle, AlertCircle, X } from "lucide-react";
+import { KeyRound, Users, FolderOpen, Loader2, LogOut, CheckCircle, AlertCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
-import styles from "../settings/settings.module.css";
+import styles from "../../settings/settings.module.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
