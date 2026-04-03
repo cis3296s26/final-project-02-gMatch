@@ -116,6 +116,42 @@ router.post("/join", requireAuth, async (req, res) => {
   }
 });
 
+// POST leave workspace
+router.post("/:id/leave", requireAuth, async (req, res) => {
+  try {
+    const workspace = await Workspace.findById(req.params.id);
+
+    if (!workspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+
+    if (!workspace.participants) {
+      workspace.participants = [];
+    }
+
+    const isParticipant = workspace.participants.some(
+      (participant) => participant.toString() === req.user.id
+    );
+
+    if (!isParticipant) {
+      return res.status(400).json({ message: "You are not a participant in this workspace" });
+    }
+
+    workspace.participants = workspace.participants.filter(
+      (participant) => participant.toString() !== req.user.id
+    );
+
+    await workspace.save();
+
+    return res.json({ message: "Left workspace successfully" });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to leave workspace",
+      error: error.message
+    });
+  }
+});
+
 // get workspaces for a specific participant
 router.get("/participant", requireAuth, async (_req, res) => {
   try {
