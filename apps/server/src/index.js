@@ -33,6 +33,7 @@ app.get("/api/health", (_req, res) => {
 });
 
 const Response = require("./models/Response");
+const { requireAuth } = require("./middleware/auth");
 
 app.post("/api/response", async (req, res) => {
   try {
@@ -45,6 +46,21 @@ app.post("/api/response", async (req, res) => {
   } catch (err) {
     console.error("Error saving:", err);
     res.status(500).json({ error: "Failed to save" });
+  }
+});
+
+// GET responses for a workspace (used by instructor page)
+app.get("/api/response", async (req, res) => {
+  try {
+    const { workspaceId } = req.query;
+    if (!workspaceId) {
+      return res.status(400).json({ error: "workspaceId is required" });
+    }
+    const responses = await Response.find({ workspaceId });
+    res.json({ responses });
+  } catch (err) {
+    console.error("Error fetching responses:", err);
+    res.status(500).json({ error: "Failed to fetch responses" });
   }
 });
 

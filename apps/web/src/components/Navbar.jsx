@@ -95,7 +95,7 @@ export default function Navbar({ variant = "landing" }) {
                   </Button>
                 </Link>
 
-                <Link href="/instructor" onClick={closeMenu}>
+                <Link href={isLoggedIn ? "/dashboard" : "/login?callbackUrl=/dashboard"} onClick={closeMenu}>
                   <Button
                     variant="ghost"
                     className="h-14 w-full justify-start gap-3 rounded-xl text-base"

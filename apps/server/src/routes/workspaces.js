@@ -169,9 +169,10 @@ router.get("/participant", requireAuth, async (_req, res) => {
 });
 
 // GET single workspace by ID
-router.get("/:id", async (req, res) => {
+router.get("/:id", requireAuth, async (req, res) => {
   try {
-    const workspace = await Workspace.findById(req.params.id);
+    const workspace = await Workspace.findById(req.params.id)
+      .populate("participants", "name email avatar");
     if (!workspace) {
       return res.status(404).json({ message: "Workspace not found" });
     }
@@ -209,7 +210,7 @@ router.patch("/:id", requireAuth, async (req, res) => {
 });
 
 // DELETE workspace
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", requireAuth, async (req, res) => {
   try {
     const workspace = await Workspace.findByIdAndDelete(req.params.id);
     if (!workspace) {
@@ -225,7 +226,7 @@ router.delete("/:id", async (req, res) => {
 });
 
 //save teams to a workspace
-router.put("/:workspaceId/teams", async (req, res) => {
+router.put("/:workspaceId/teams", requireAuth, async (req, res) => {
   try {
     const { workspaceId } = req.params;
     const { teams } = req.body;
