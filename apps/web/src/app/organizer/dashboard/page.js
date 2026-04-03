@@ -166,7 +166,7 @@ export default function OrganizerDashboard() {
                         min={2}
                         max={20}
                         value={newTeamSize}
-                        onChange={(e) => setNewTeamSize(parseInt(e.target.value))}
+                        onChange={(e) => setNewTeamSize(parseInt(e.target.value) || 2)}
                         className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>

@@ -21,16 +21,13 @@ function SelectRoleContent() {
     if (status === "unauthenticated") {
       router.push("/login");
     }
-    if (session?.user?.role === "organizer") {
-      router.push(callbackUrl || "/organizer/dashboard");
-    } else if (session?.user?.role === "participant") {
-      router.push(callbackUrl || "/participant/dashboard");
+    if (session?.user?.role) {
+      router.push(callbackUrl || "/dashboard");
     }
   }, [status, session, router, callbackUrl]);
 
   function getRedirect(role) {
-    if (callbackUrl) return callbackUrl;
-    return role === "organizer" ? "/organizer/dashboard" : "/participant/dashboard";
+    return callbackUrl || "/dashboard";
   }
 
   async function handleSelectRole(role) {

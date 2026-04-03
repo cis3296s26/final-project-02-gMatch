@@ -1,16 +1,16 @@
-import { decode } from "next-auth/jwt";
-import User from "../models/User.js";
+const { decode } = require("next-auth/jwt");
+const User = require("../models/User");
 
-export async function requireAuth(req, res, next) {
+async function requireAuth(req, res, next) {
   try {
     const token = req.headers.authorization?.split(" ")[1];
 
     if (!token) return res.status(401).json({ error: "Unauthorized" });
 
-    const saltStr = 'authjs.session-token';
+    let saltStr = "authjs.session-token";
 
-    if (req.cookies["__Secure-authjs.session-token"]) {
-      saltStr = '__Secure-authjs.session-token';
+    if (req.cookies?.["__Secure-authjs.session-token"]) {
+      saltStr = "__Secure-authjs.session-token";
     }
 
     const payload = await decode({
@@ -23,7 +23,7 @@ export async function requireAuth(req, res, next) {
 
     // get user id using email from payload
     const usr = await User.findOne({ email: payload.email });
- 
+
     if (!usr) return res.status(401).json({ error: "Unauthorized" });
 
     req.user = { ...payload, id: usr._id };
@@ -33,3 +33,5 @@ export async function requireAuth(req, res, next) {
     return res.status(401).json({ error: "Invalid session" });
   }
 }
+
+module.exports = { requireAuth };
