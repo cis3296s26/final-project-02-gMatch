@@ -37,7 +37,7 @@ export default function SurveyPage() {
           ],
         };
 
-        const res = await fetch("http://localhost:5001/api/response", {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/response`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
