@@ -3,12 +3,49 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { KeyRound, Users, FolderOpen, Loader2, LogOut } from "lucide-react";
+import { KeyRound, Users, FolderOpen, Loader2, LogOut, CheckCircle, AlertCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
+import styles from "../settings/settings.module.css";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+
+function Toast({ message, type, onClose }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 3500);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  const isSuccess = type === "success";
+
+  return (
+    <div className={styles.toastWrap}>
+      <div
+        className={`${styles.toast} ${
+          isSuccess ? styles.toastSuccess : styles.toastError
+        }`}
+      >
+        {isSuccess ? (
+          <CheckCircle className={styles.toastIconSuccess} />
+        ) : (
+          <AlertCircle className={styles.toastIconError} />
+        )}
+
+        <p className={styles.toastMessage}>{message}</p>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className={styles.toastClose}
+          aria-label="Close notification"
+        >
+          <X className={styles.toastCloseIcon} />
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function ParticipantDashboard() {
   const { data: session, status } = useSession();
@@ -17,6 +54,7 @@ export default function ParticipantDashboard() {
   const [inviteCode, setInviteCode] = useState("");
   const [joining, setJoining] = useState(false);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState(null); // { message, type }
 
   useEffect(() => {
     if (session?.user?.email) {
@@ -97,16 +135,22 @@ export default function ParticipantDashboard() {
       }); 
       
       if (res.ok) {
+        showToast(`Left "${workspaceName}" successfully!`, "success");
         fetchWorkspaces();
       } else {
         const data = await res.json();
+        showToast(data.message || "Failed to leave workspace", "error");
         setError(data.message || "Failed to leave workspace");
-      }    
+      }
     } catch (err) {
+      showToast("Could not connect to server", "error");
       setError("Could not connect to server");
     }
   }  
 
+  function showToast(message, type) {
+    setToast({ message, type });
+  }
 
   if (status === "loading" || loading) {
     return (
@@ -122,6 +166,14 @@ export default function ParticipantDashboard() {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar variant="dashboard" />
+
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+        />
+      )}
 
       <main className="flex-1">
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
