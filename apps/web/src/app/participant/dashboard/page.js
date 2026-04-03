@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { KeyRound, Users, FolderOpen, Loader2, LogOut, CheckCircle, AlertCircle, X } from "lucide-react";
+import { KeyRound, Users, Loader2, LogOut, CheckCircle, AlertCircle, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
