@@ -72,7 +72,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             const dbUser = await res.json();
             session.user.id = dbUser._id;
             session.user.role = dbUser.role;
-            session.token = accessToken; // Include the token in the session for API calls
+            // Sync name from DB so profile edits are reflected in the session
+            if (dbUser.name) session.user.name = dbUser.name;
+            session.token = accessToken;
           }
         } catch (err) {
           // Timeout or connection error — return session without DB data
