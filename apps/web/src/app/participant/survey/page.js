@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
 
 export default function SurveyPage() {
     const [name, setName] = useState("");
@@ -110,17 +111,23 @@ export default function SurveyPage() {
     }
 
     if (submitted) {
-    return (
-      <div className="flex min-h-screen flex-col bg-background">
-        <Navbar />
-        <div className="flex flex-1 items-center justify-center">
-          <h1 className="text-2xl font-bold">
-            Survey Submitted!
-          </h1>
+      return (
+        <div className="flex min-h-screen flex-col bg-background">
+          <Navbar />
+          <div className="flex flex-1 flex-col items-center justify-center gap-4">
+            <h1 className="text-2xl font-bold">
+              Survey Submitted!
+            </h1>
+
+            <Link href="/participant/dashboard">
+              <Button>
+                Back to Dashboard
+              </Button>
+            </Link>
+          </div>
         </div>
-      </div>
-    );
-  }
+      );
+    }
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
