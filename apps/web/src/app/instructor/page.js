@@ -242,6 +242,10 @@ export default function DashboardPage() {
   const activeWorkspace =
     workspaces.find((workspace) => workspace._id === activeWorkspaceId) || null;
 
+  const availabilityHref = activeWorkspaceId
+  ? `/instructor/availability?workspaceId=${activeWorkspaceId}`
+  : "/instructor/availability";
+
   const saveTeamsToLocalWorkspace = (generatedTeams) => {
     if (!activeWorkspace) return;
 
@@ -368,6 +372,16 @@ export default function DashboardPage() {
             </Link>
           )}
           <h2 className="instructor-title">Manage Workspace</h2>
+
+          <div className="top-actions-row">
+            <Link
+              href={availabilityHref} 
+              className="instructor-button availability-grid-button"
+              style={{ textDecoration: "none", display: "inline-block" }}
+            >
+              View Availability Grid
+            </Link>
+          </div>
 
           <div className="instructor-card">
             <h3>Workspace</h3>
