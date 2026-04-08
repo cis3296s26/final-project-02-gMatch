@@ -3,6 +3,7 @@ import { Users, FileUser, SlidersHorizontal, MessageSquare, ArrowRight, LayoutTe
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
+import HeroCTAs from "@/components/HeroCTAs";
 
 const features = [
   {
@@ -67,20 +68,7 @@ export default function LandingPage() {
               compatible project teams. No more manual spreadsheets or random assignments.
             </p>
 
-            <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <Link href="/organizer/dashboard">
-                <Button size="lg" className="h-12 gap-2 px-6 text-base font-semibold">
-                  Dashboard
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href="/participant/dashboard">
-                <Button variant="outline" size="lg" className="h-12 gap-2 px-6 text-base font-semibold">
-                  Join a Team
-                  <Users className="h-4 w-4" />
-                </Button>
-              </Link>
-            </div>
+            <HeroCTAs />
           </div>
         </div>
       </section>

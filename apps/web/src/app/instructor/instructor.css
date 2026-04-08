@@ -250,4 +250,12 @@
     margin-left: 0;
     margin-top: 10px;
   }
+
+  .top-actions-row {
+    margin-bottom: 20px;
+  }
+
+  .availability-grid-button {
+    text-decoration: none;
+  }
 }

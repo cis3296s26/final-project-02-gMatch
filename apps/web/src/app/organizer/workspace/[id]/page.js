@@ -25,14 +25,16 @@ export default function WorkspaceDetailPage() {
   const [editTeamSize, setEditTeamSize] = useState(4);
 
   useEffect(() => {
-    fetchWorkspace();
-  }, [id]);
+    if (session?.token) {
+      fetchWorkspace();
+    }
+  }, [id, session]);
 
   async function fetchWorkspace() {
     try {
       const res = await fetch(`${API_URL}/api/workspaces/${id}`
         , {
-          // headers: { 'Authorization': `Bearer ${session.token || ''}` },
+          headers: { 'Authorization': `Bearer ${session?.token || ''}` },
           credentials: "include",
         }
       );
@@ -122,7 +124,7 @@ export default function WorkspaceDetailPage() {
         <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
           {/* Back link */}
           <Link
-            href="/organizer/dashboard"
+            href="/dashboard"
             className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -203,7 +205,7 @@ export default function WorkspaceDetailPage() {
                       max={20}
                       value={editTeamSize}
                       onChange={(e) =>
-                        setEditTeamSize(parseInt(e.target.value))
+                        setEditTeamSize(parseInt(e.target.value) || 2)
                       }
                       className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
                     />

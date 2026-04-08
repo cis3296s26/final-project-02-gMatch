@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import StrategyFactory from "@/services/StrategyFactory";
 import Navbar from "@/components/Navbar";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
 import "./instructor.css";
 
 const API_BASE_URL =
@@ -34,12 +36,7 @@ export default function DashboardPage() {
   const [workspaceMessage, setWorkspaceMessage] = useState("");
   const [isCreatingWorkspace, setIsCreatingWorkspace] = useState(false);
 
-  const students = [
-    { name: "Alice", availability: ["Mon", "Wed"], skills: ["Java"] },
-    { name: "Brian", availability: ["Mon"], skills: ["UI"] },
-    { name: "Carla", availability: ["Wed"], skills: ["DB"] },
-    { name: "David", availability: ["Mon", "Wed"], skills: ["Beginner"] }
-  ];
+  const [students, setStudents] = useState([]);
 
   const localStorageKey = useMemo(() => {
     const email = session?.user?.email || "guest";
@@ -49,6 +46,17 @@ export default function DashboardPage() {
   useEffect(() => {
     loadWorkspaces();
   }, [session]);
+
+  useEffect(() => {
+    // If we have workspaces, and there's a workspaceId in the URL, select it
+    if (workspaces.length > 0) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlWsId = urlParams.get("workspaceId");
+      if (urlWsId && workspaces.some((w) => w._id === urlWsId)) {
+        setActiveWorkspaceId(urlWsId);
+      }
+    }
+  }, [workspaces]);
 
   useEffect(() => {
     const selectedWorkspace =
@@ -65,6 +73,43 @@ export default function DashboardPage() {
       setHasGenerated(false);
     }
   }, [activeWorkspaceId, workspaces]);
+
+  // Fetch survey responses when active workspace changes
+  useEffect(() => {
+    if (!activeWorkspaceId) return;
+    async function fetchResponses() {
+      try {
+        const res = await fetch(
+          `${API_BASE_URL}/api/response?workspaceId=${activeWorkspaceId}`,
+          {
+            headers: { Authorization: `Bearer ${session?.token || ""}` },
+            credentials: "include",
+          }
+        );
+        if (res.ok) {
+          const data = await res.json();
+          const mapped = (data.responses || []).map((r) => {
+            const nameAnswer = r.answers?.find((a) => a.questionId === "name");
+            const skillsAnswer = r.answers?.find((a) => a.questionId === "skills");
+            const availAnswer = r.answers?.find((a) => a.questionId === "availability");
+            // availability may be [{day,startTime,endTime}] — flatten to day strings
+            const availability = Array.isArray(availAnswer?.value)
+              ? availAnswer.value.map((v) => (typeof v === "string" ? v : v.day)).filter(Boolean)
+              : [];
+            return {
+              name: nameAnswer?.value || "Unknown",
+              skills: Array.isArray(skillsAnswer?.value) ? skillsAnswer.value : [],
+              availability,
+            };
+          });
+          setStudents(mapped);
+        }
+      } catch (err) {
+        console.error("Failed to fetch survey responses:", err);
+      }
+    }
+    fetchResponses();
+  }, [activeWorkspaceId, session]);
 
   const loadWorkspaces = async () => {
     setWorkspaceMessage("");
@@ -197,6 +242,10 @@ export default function DashboardPage() {
   const activeWorkspace =
     workspaces.find((workspace) => workspace._id === activeWorkspaceId) || null;
 
+  const availabilityHref = activeWorkspaceId
+  ? `/instructor/availability?workspaceId=${activeWorkspaceId}`
+  : "/instructor/availability";
+
   const saveTeamsToLocalWorkspace = (generatedTeams) => {
     if (!activeWorkspace) return;
 
@@ -312,7 +361,27 @@ export default function DashboardPage() {
 
       <div className="instructor-page">
         <div className="instructor-container">
+          {activeWorkspaceId && (
+            <Link
+              href={`/organizer/workspace/${activeWorkspaceId}`}
+              className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
+              style={{ textDecoration: 'none' }}
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Workspace
+            </Link>
+          )}
           <h2 className="instructor-title">Manage Workspace</h2>
+
+          <div className="top-actions-row">
+            <Link
+              href={availabilityHref} 
+              className="instructor-button availability-grid-button"
+              style={{ textDecoration: "none", display: "inline-block" }}
+            >
+              View Availability Grid
+            </Link>
+          </div>
 
           <div className="instructor-card">
             <h3>Workspace</h3>
