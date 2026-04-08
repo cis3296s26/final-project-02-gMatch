@@ -2,6 +2,7 @@ const express = require("express");
 const Workspace = require("../models/Workspace");
 const router = express.Router();
 const { requireAuth } = require("../middleware/auth");
+const mongoose = require("mongoose");
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -94,8 +95,10 @@ router.post("/join", requireAuth, async (req, res) => {
     if (!workspace.participants) workspace.participants = [];
 
     // Check if participant is already in a team
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+
     const alreadyJoined = workspace.participants.some(participant =>
-      participant === req.user.id
+      participant.equals(userId)
     );
 
     if (alreadyJoined) {
@@ -103,7 +106,7 @@ router.post("/join", requireAuth, async (req, res) => {
     }
 
     // Add participant to the workspace
-    workspace.participants.push(req.user.id);
+    workspace.participants.push(userId);
 
     await workspace.save();
 
@@ -129,8 +132,10 @@ router.post("/:id/leave", requireAuth, async (req, res) => {
       workspace.participants = [];
     }
 
+    const userId = new mongoose.Types.ObjectId(req.user.id);
+
     const isParticipant = workspace.participants.some(
-      (participant) => participant.toString() === req.user.id
+      (participant) => participant.equals(userId)
     );
 
     if (!isParticipant) {
@@ -138,7 +143,7 @@ router.post("/:id/leave", requireAuth, async (req, res) => {
     }
 
     workspace.participants = workspace.participants.filter(
-      (participant) => participant.toString() !== req.user.id
+      (participant) => !participant.equals(userId)
     );
 
     await workspace.save();
@@ -155,8 +160,10 @@ router.post("/:id/leave", requireAuth, async (req, res) => {
 // get workspaces for a specific participant
 router.get("/participant", requireAuth, async (_req, res) => {
   try {
+    const userId = new mongoose.Types.ObjectId(_req.user.id);
+
     const workspaces = await Workspace.find({
-      participants: { $in: [_req.user.id] },
+      participants: { $in: [userId] },
     }).sort({ createdAt: 1 });
     
     res.json({ workspaces });
