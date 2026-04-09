@@ -91,13 +91,33 @@ export default function DashboardPage() {
           const mapped = (data.responses || []).map((r) => {
             const nameAnswer = r.answers?.find((a) => a.questionId === "name");
             const skillsAnswer = r.answers?.find((a) => a.questionId === "skills");
-            const availAnswer = r.answers?.find((a) => a.questionId === "availability");
-            // availability may be [{day,startTime,endTime}] — flatten to day strings
-            const availability = Array.isArray(availAnswer?.value)
-              ? availAnswer.value.map((v) => (typeof v === "string" ? v : v.day)).filter(Boolean)
-              : [];
+
+            // Prefer the structured availabilityGrid (populated by server on submit).
+            // Fall back to legacy answers array for older records.
+            let availability = [];
+            if (r.availabilityGrid && Object.keys(r.availabilityGrid).length > 0) {
+              for (const [day, times] of Object.entries(r.availabilityGrid)) {
+                for (const time of times) {
+                  availability.push(`${day} ${time}`);
+                }
+              }
+            } else {
+              const availAnswer = r.answers?.find((a) => a.questionId === "availability");
+              availability = Array.isArray(availAnswer?.value)
+                ? availAnswer.value
+                    .map((v) => {
+                      if (typeof v === "string") return v;
+                      if (v?.day && v?.startTime && v?.endTime)
+                        return `${v.day} ${v.startTime}-${v.endTime}`;
+                      if (v?.day) return v.day;
+                      return null;
+                    })
+                    .filter(Boolean)
+                : [];
+            }
+
             return {
-              name: nameAnswer?.value || "Unknown",
+              name: nameAnswer?.value || r.participantId?.name || "Unknown",
               skills: Array.isArray(skillsAnswer?.value) ? skillsAnswer.value : [],
               availability,
             };

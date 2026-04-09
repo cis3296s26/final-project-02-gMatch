@@ -18,10 +18,13 @@ app.use(cookieParser());
 // --------------- Routes ---------------
 const authRoutes = require("./routes/auth");
 const workspaceRoutes = require("./routes/workspaces");
+const notificationRoutes = require("./routes/notifications");
+const responseRoutes = require("./routes/responses");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/workspaces", workspaceRoutes);
-
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/response", responseRoutes);
 
 app.get("/api/health", (_req, res) => {
   const dbStates = ["disconnected", "connected", "connecting", "disconnecting"];
@@ -30,38 +33,6 @@ app.get("/api/health", (_req, res) => {
     timestamp: new Date().toISOString(),
     db: dbStates[mongoose.connection.readyState] || "unknown",
   });
-});
-
-const Response = require("./models/Response");
-const { requireAuth } = require("./middleware/auth");
-
-app.post("/api/response", async (req, res) => {
-  try {
-    console.log("Incoming data:", req.body);
-
-    const newResponse = new Response(req.body);
-    await newResponse.save();
-
-    res.json({ message: "Saved successfully!" });
-  } catch (err) {
-    console.error("Error saving:", err);
-    res.status(500).json({ error: "Failed to save" });
-  }
-});
-
-// GET responses for a workspace (used by instructor page)
-app.get("/api/response", async (req, res) => {
-  try {
-    const { workspaceId } = req.query;
-    if (!workspaceId) {
-      return res.status(400).json({ error: "workspaceId is required" });
-    }
-    const responses = await Response.find({ workspaceId });
-    res.json({ responses });
-  } catch (err) {
-    console.error("Error fetching responses:", err);
-    res.status(500).json({ error: "Failed to fetch responses" });
-  }
 });
 
 // --------------- Start ---------------

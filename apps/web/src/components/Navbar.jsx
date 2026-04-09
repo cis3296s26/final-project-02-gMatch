@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import NotificationsBell from "@/components/NotificationsBell";
 
 export default function Navbar({ variant = "landing" }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,14 +37,17 @@ export default function Navbar({ variant = "landing" }) {
             </span>
           </Link>
 
-          {/* Always show hamburger */}
-          <button
-            type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition hover:bg-muted"
-            onClick={() => setMenuOpen(true)}
-          >
-            <Menu className="h-6 w-6" />
-          </button>
+          {/* Right side: bell + hamburger */}
+          <div className="flex items-center gap-2">
+            <NotificationsBell />
+            <button
+              type="button"
+              className="flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-background text-muted-foreground transition hover:bg-muted"
+              onClick={() => setMenuOpen(true)}
+            >
+              <Menu className="h-6 w-6" />
+            </button>
+          </div>
         </div>
       </nav>
 

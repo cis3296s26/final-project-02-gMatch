@@ -1,3 +1,4 @@
+/* Base page layout */
 .instructor-page {
   min-height: 100vh;
   padding: 40px 20px;
@@ -15,6 +16,7 @@
   color: #111827;
 }
 
+/* Cards */
 .instructor-card {
   background: #ffffff;
   padding: 24px;
@@ -29,26 +31,16 @@
   color: #111827;
 }
 
+/* Form rows / fields */
 .instructor-row {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
 }
 
-.instructor-field-wide {
-  flex: 2;
-  min-width: 240px;
-}
-
-.instructor-field {
-  flex: 1;
-  min-width: 180px;
-}
-
-.instructor-team-field {
-  flex: 1;
-  min-width: 200px;
-}
+.instructor-field-wide { flex: 2; min-width: 240px; }
+.instructor-field      { flex: 1; min-width: 180px; }
+.instructor-team-field { flex: 1; min-width: 200px; }
 
 .instructor-label {
   display: block;
@@ -68,6 +60,7 @@
   background: #ffffff;
 }
 
+/* Buttons */
 .instructor-button {
   padding: 12px 18px;
   border: none;
@@ -76,17 +69,10 @@
   color: #ffffff;
   font-weight: 700;
   cursor: pointer;
-  transition: 0.2s ease;
+  transition: opacity 0.2s ease;
 }
-
-.instructor-button:hover {
-  opacity: 0.92;
-}
-
-.instructor-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.7;
-}
+.instructor-button:hover    { opacity: 0.92; }
+.instructor-button:disabled { cursor: not-allowed; opacity: 0.7; }
 
 .instructor-button-secondary {
   padding: 12px 18px;
@@ -120,6 +106,7 @@
   text-decoration: underline;
 }
 
+/* Status / text */
 .instructor-message {
   margin-top: 14px;
   margin-bottom: 0;
@@ -127,11 +114,18 @@
   font-weight: 700;
 }
 
-.instructor-muted {
+.instructor-muted  { color: #6b7280; margin: 0; }
+.instructor-text   { color: #374151; }
+
+.strategy-help {
+  margin-top: 10px;
+  margin-bottom: 0;
   color: #6b7280;
-  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
 }
 
+/* ── Workspace tabs ───────────────────────────────────────────── */
 .workspace-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -147,10 +141,10 @@
   color: #374151;
   font-weight: 700;
   cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
-
 .workspace-tab.active {
-  border: 1px solid #1d4ed8;
+  border-color: #1d4ed8;
   background: #dbeafe;
   color: #1d4ed8;
 }
@@ -161,25 +155,12 @@
   background: #f9fafb;
   border: 1px solid #e5e7eb;
 }
+.workspace-details p              { margin: 0 0 8px; color: #374151; }
+.workspace-details p:last-child   { margin-bottom: 0; }
 
-.workspace-details p {
-  margin: 0 0 8px 0;
-  color: #374151;
-}
-
-.workspace-details p:last-child {
-  margin-bottom: 0;
-}
-
-.question-list {
-  padding-left: 20px;
-  margin-bottom: 16px;
-}
-
-.question-list li {
-  margin-bottom: 10px;
-  color: #374151;
-}
+/* Survey questions */
+.question-list          { padding-left: 20px; margin-bottom: 16px; }
+.question-list li       { margin-bottom: 10px; color: #374151; }
 
 .remove-button {
   margin-left: 10px;
@@ -191,21 +172,11 @@
   cursor: pointer;
 }
 
-.inline-input-row {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
+.inline-input-row               { display: flex; gap: 10px; flex-wrap: wrap; }
+.inline-input-row .instructor-input { flex: 1; min-width: 250px; }
 
-.inline-input-row .instructor-input {
-  flex: 1;
-  min-width: 250px;
-}
-
-.actions-row {
-  margin-top: 30px;
-  margin-bottom: 20px;
-}
+/* Team generation */
+.actions-row { margin-top: 30px; margin-bottom: 20px; }
 
 .team-box {
   margin-bottom: 10px;
@@ -215,47 +186,181 @@
   border: 1px solid #bfdbfe;
 }
 
-.config-list {
-  padding-left: 20px;
-  margin: 0;
-  color: #4b5563;
+/* Config list */
+.config-list          { padding-left: 20px; margin: 0; color: #4b5563; }
+.config-list li       { margin-bottom: 6px; }
+
+/* Top action row (View Availability Grid button) */
+.top-actions-row {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
-.config-list li {
-  margin-bottom: 6px;
-}
-
-.instructor-text {
-  color: #374151;
-}
-
-.strategy-help {
-  margin-top: 10px;
-  margin-bottom: 0;
-  color: #6b7280;
+.availability-grid-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #15803d;
+  font-weight: 700;
   font-size: 14px;
-  line-height: 1.5;
+  text-decoration: none !important;
+  transition: background 0.15s, border-color 0.15s;
+}
+.availability-grid-button:hover {
+  background: #dcfce7;
+  border-color: #4ade80;
 }
 
+/* ── Availability grid page ───────────────────────────────────── */
+
+/* Workspace selector pills on the availability page */
+.avail-workspace-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.avail-workspace-tab {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
+}
+.avail-workspace-tab.active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+/* Conflict / ok banners */
+.avail-conflict-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 10px;
+  border: 1px solid #fde68a;
+  background: #fffbeb;
+  color: #92400e;
+}
+.avail-conflict-banner svg { flex-shrink: 0; margin-top: 2px; }
+.avail-conflict-banner strong { display: block; margin-bottom: 2px; }
+
+.avail-ok-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid #bbf7d0;
+  background: #f0fdf4;
+  color: #166534;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Grid table tweaks */
+.avail-table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.avail-day-header {
+  background: #f9fafb;
+  font-weight: 700;
+  text-align: center;
+  border-right: 1px solid #e5e7eb;
+  font-size: 13px;
+}
+
+.avail-time-header {
+  text-align: center;
+  font-size: 11px;
+  white-space: nowrap;
+  padding: 6px 8px;
+}
+.avail-time-header.last-in-day { border-right: 1px solid #e5e7eb; }
+
+.avail-coverage-high   { color: #15803d; font-size: 10px; }
+.avail-coverage-mid    { color: #b45309; font-size: 10px; }
+.avail-coverage-low    { color: #9ca3af; font-size: 10px; }
+
+.avail-cell-yes  { background: #f0fdf4; text-align: center; }
+.avail-cell-no   { text-align: center; }
+.avail-cell-yes.last-in-day,
+.avail-cell-no.last-in-day  { border-right: 1px solid #e5e7eb; }
+
+.avail-check  { color: #16a34a; font-size: 16px; }
+.avail-dash   { color: #d1d5db; font-size: 12px; }
+
+/* Skill chips inside student name cell */
+.avail-skill-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+  margin-top: 4px;
+}
+.avail-skill-chip {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-size: 10px;
+  font-weight: 500;
+}
+
+/* Conflict detail table */
+.avail-conflict-table-wrap {
+  margin-top: 20px;
+  border-radius: 8px;
+  border: 1px solid #fde68a;
+  overflow: hidden;
+}
+.avail-conflict-table-title {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #92400e;
+}
+.avail-conflict-row td { font-size: 13px; }
+
+/* Legend */
+.avail-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 12px;
+  color: #6b7280;
+  align-items: center;
+}
+.avail-legend-dot {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  margin-right: 4px;
+  vertical-align: middle;
+}
+
+/* Responsive */
 @media (max-width: 768px) {
-  .instructor-page {
-    padding: 24px 14px;
-  }
-
-  .instructor-title {
-    font-size: 26px;
-  }
-
-  .instructor-button-secondary {
-    margin-left: 0;
-    margin-top: 10px;
-  }
-
-  .top-actions-row {
-    margin-bottom: 20px;
-  }
-
-  .availability-grid-button {
-    text-decoration: none;
-  }
+  .instructor-page         { padding: 24px 14px; }
+  .instructor-title        { font-size: 26px; }
+  .instructor-button-secondary { margin-left: 0; margin-top: 10px; }
+  .top-actions-row         { margin-bottom: 20px; }
+  .availability-grid-button { text-decoration: none; }
 }
