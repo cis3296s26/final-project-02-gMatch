@@ -60,22 +60,9 @@ router.post("/", requireAuth, async (req, res) => {
 
     const inviteCode = await generateUniqueInviteCode();
 
-    // prevent duplicate workspace names for the same organizer
-    const existing = await Workspace.findOne({
-      organizerId: req.user.id,
-      name: name.trim()
-    });
-
-    if (existing) {
-      return res.status(400).json({ message: "You already have a workspace with this name" });
-    }
-
-    // sanitize name to prevent XSS
-    const cleanName = name.trim().replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
     const workspace = await Workspace.create({
       organizerId: req.user.id,
-      name: cleanName,
+      name: name.trim(),
       teamSize: Number(teamSize),
       inviteCode,
       teams: []
