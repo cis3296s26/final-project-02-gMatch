@@ -22,6 +22,9 @@ function SurveyContent() {
     const [endTime, setEndTime] = useState("");
     const [availabilityList, setAvailabilityList] = useState([]);
     const [submitted, setSubmitted] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState("");
+    const [errors, setErrors] = useState({});
 
     //to make the survey dynamic (concept)
     const questions = [
@@ -30,8 +33,53 @@ function SurveyContent() {
       { id: "availability", label: "Availability", type: "availability" },
     ];
 
+    function clearError(field) {
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    }
+
     async function handleSubmit(e) {
       e.preventDefault();
+      setSubmitError("");
+
+      const nextErrors = {};
+
+      if (!name.trim()) {
+        nextErrors.name = "Please enter your name.";
+      }
+
+      if (skills.length === 0) {
+        nextErrors.skills = "Please add at least one skill.";
+      }
+
+      if (availabilityList.length === 0) {
+        nextErrors.availability = "Please add at least one availability slot.";
+      }
+
+      if (!workspaceId) {
+        nextErrors.form = "Missing workspace. Open this survey from a workspace link.";
+      }
+
+      if (Object.keys(nextErrors).length > 0) {
+        setErrors(nextErrors);
+        return;
+      }
+
+      const responseData = {
+        workspaceId: workspaceId,
+        participantId: session?.user?.id,
+        answers: [
+          { questionId: "name", value: name.trim() },
+          { questionId: "skills", value: skills },
+          { questionId: "availability", value: availabilityList },
+        ],
+      };
+
+      try {
+        setIsSubmitting(true);
 
       if (name && skills.length > 0 && availabilityList.length > 0) {
         const responseData = {
@@ -53,12 +101,17 @@ function SurveyContent() {
           body: JSON.stringify(responseData),
         });
 
-        const data = await res.json();
-        console.log(data);
+        if (!res.ok) {
+          throw new Error("Failed to submit survey");
+        }
 
+        await res.json();
         setSubmitted(true);
-      } else {
-        alert("Please answer all questions");
+      } catch (error) {
+        console.error(error);
+        setSubmitError("Could not submit survey. Please try again.");
+      } finally {
+        setIsSubmitting(false);
       }
     }
 
@@ -76,10 +129,19 @@ function SurveyContent() {
     }
 
     function addAvailability() {
-      if (!day || !startTime || !endTime) return;
+      if (!day || !startTime || !endTime) {
+        setErrors((prev) => ({
+          ...prev,
+          availability: "Please select a day, start time, and end time.",
+        }));
+        return;
+      }
 
       if (startTime >= endTime) {
-        alert("End time must be after start time");
+        setErrors((prev) => ({
+          ...prev,
+          availability: "End time must be after start time.",
+        }));
         return;
       }
 
@@ -96,13 +158,19 @@ function SurveyContent() {
           item.endTime === endTime
       );
 
-      if (!exists) {
-        setAvailabilityList([...availabilityList, newEntry]);
+      if (exists) {
+        setErrors((prev) => ({
+          ...prev,
+          availability: "That availability slot is already added.",
+        }));
+        return;
       }
 
+      setAvailabilityList([...availabilityList, newEntry]);
       setStartTime("");
       setEndTime("");
       setDay("");
+      clearError("availability");
     }
 
     function removeSkill(index) {
@@ -151,26 +219,40 @@ function SurveyContent() {
             <form onSubmit={handleSubmit} className="space-y-4">
               {questions.map((q) => (
                 <div key={q.id}>
-                  <p className="text-sm font-medium mb-1">{q.label}</p>
+                  <p className="text-sm font-medium mb-1">
+                    {q.label} <span className="text-red-500">*</span>
+                  </p>
 
                   {/* TEXT */}
                   {q.type === "text" && (
+                    <>
                     <input
-                      className="w-full border rounded p-2"
+                      className={`w-full border rounded p-2 ${errors.name ? "border-red-500" : ""}`}
                       placeholder={q.label}
                       value={name}
-                      onChange={(e) => setName(e.target.value)}
+                      onChange={(e) => {
+                        setName(e.target.value);
+                        clearError("name");
+                      }}
                     />
-                  )}
 
+                    {errors.name && (
+                      <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                    )}
+                  </>
+                )}
+    
                   {/* SKILLS */}
                   {q.type === "skills" && (
                     <div>
                       <input
-                        className="w-full border rounded p-2"
+                        className={`w-full border rounded p-2 ${errors.skills ? "border-red-500" : ""}`}
                         placeholder="Type a skill and press Enter"
                         value={skillInput}
-                        onChange={(e) => setSkillInput(e.target.value)}
+                        onChange={(e) => {
+                          setSkillInput(e.target.value);
+                          clearError("skills");
+                        }}
                         onKeyDown={handleAddSkill}
                       />
 
@@ -190,6 +272,9 @@ function SurveyContent() {
                           </div>
                         ))}
                       </div>
+                      {errors.skills && (
+                        <p className="mt-2 text-sm text-red-600">{errors.skills}</p>
+                      )}
                     </div>
                   )}
 
@@ -199,9 +284,12 @@ function SurveyContent() {
 
                       {/* Day selector */}
                       <select
-                        className="w-full border rounded p-2"
+                        className={`w-full border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
                         value={day}
-                        onChange={(e) => setDay(e.target.value)}
+                        onChange={(e) => {
+                          setDay(e.target.value);
+                          clearError("availability");
+                        }}
                       >
                         <option value="">Select a day</option>
                         <option>Monday</option>
@@ -216,23 +304,33 @@ function SurveyContent() {
                       {/* Start time */}
                       <input
                         type="time"
-                        className="w-full border rounded p-2"
+                        className={`w-full border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
                         value={startTime}
-                        onChange={(e) => setStartTime(e.target.value)}
+                        onChange={(e) => {
+                          setStartTime(e.target.value);
+                          clearError("availability");
+                        }}
                       />
 
                       {/* End time */}
                       <input
                         type="time"
-                        className="w-full border rounded p-2"
+                        className={`w-full border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
                         value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
+                        onChange={(e) => {
+                          setEndTime(e.target.value);
+                          clearError("availability");
+                        }}
                       />
 
                       {/* Add button */}
                       <Button type="button" onClick={addAvailability}>
                         Add Availability
                       </Button>
+
+                      {errors.availability && (
+                        <p className="text-sm text-red-600">{errors.availability}</p>
+                      )}
 
                       {/* Display slots */}
                       <div className="space-y-2">
@@ -259,9 +357,19 @@ function SurveyContent() {
                   )}
                 </div>
               ))}
-              <Button type="submit" className="w-full">
-                Submit Survey
-              </Button>
+              <>
+                {errors.form && (
+                  <p className="text-sm text-red-600">{errors.form}</p>
+                )}
+
+                {submitError && (
+                  <p className="text-sm text-red-600">{submitError}</p>
+                )}
+
+                <Button type="submit" className="w-full" disabled={isSubmitting}>
+                  {isSubmitting ? "Submitting..." : "Submit Survey"}
+                </Button>
+              </>
             </form>
           </CardContent>
         </Card>
