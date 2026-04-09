@@ -107,6 +107,7 @@ function SurveyContent() {
 
         await res.json();
         setSubmitted(true);
+        }
       } catch (error) {
         console.error(error);
         setSubmitError("Could not submit survey. Please try again.");
