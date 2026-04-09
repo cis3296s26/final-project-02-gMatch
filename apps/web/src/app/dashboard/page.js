@@ -110,14 +110,18 @@ export default function UnifiedDashboard() {
           teamSize: newTeamSize,
         }),
       });
+
+      const data = await res.json();
+
       if (res.ok) {
-        const data = await res.json();
         const ws = data.workspace || data;
         setOrganizerWs((prev) => [ws, ...prev]);
         setNewName("");
         setNewTeamSize(4);
         setShowCreate(false);
         setToast({ message: `Workspace "${ws.name}" created!`, type: "success" });
+      } else {
+        setToast({ message: data.error || data.message || "Failed to create workspace", type: "error" });
       }
     } catch (err) {
       setToast({ message: "Failed to create workspace", type: "error" });
