@@ -1,12 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
+import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
 import Link from "next/link";
 
-export default function SurveyPage() {
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+
+function SurveyContent() {
+    const { data: session } = useSession();
+    const searchParams = useSearchParams();
+    const workspaceId = searchParams.get("workspaceId");
     const [name, setName] = useState("");
     const [skills, setSkills] = useState([]);
     const [skillInput, setSkillInput] = useState("");
@@ -73,6 +80,17 @@ export default function SurveyPage() {
 
       try {
         setIsSubmitting(true);
+
+      if (name && skills.length > 0 && availabilityList.length > 0) {
+        const responseData = {
+          workspaceId: workspaceId,
+          participantId: session?.user?.id,
+          answers: [
+            { questionId: "name", value: name },
+            { questionId: "skills", value: skills },
+            { questionId: "availability", value: availabilityList },
+          ],
+        };
 
         const res = await fetch(`${API_URL}/api/response`, {
           method: "POST",
@@ -357,5 +375,13 @@ export default function SurveyPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function SurveyPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center"><p className="text-muted-foreground">Loading…</p></div>}>
+      <SurveyContent />
+    </Suspense>
   );
 }

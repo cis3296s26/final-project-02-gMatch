@@ -1,0 +1,261 @@
+.instructor-page {
+  min-height: 100vh;
+  padding: 40px 20px;
+  background: #f8fafc;
+}
+
+.instructor-container {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.instructor-title {
+  font-size: 32px;
+  margin-bottom: 24px;
+  color: #111827;
+}
+
+.instructor-card {
+  background: #ffffff;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 20px;
+}
+
+.instructor-card h3 {
+  margin-top: 0;
+  margin-bottom: 16px;
+  color: #111827;
+}
+
+.instructor-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.instructor-field-wide {
+  flex: 2;
+  min-width: 240px;
+}
+
+.instructor-field {
+  flex: 1;
+  min-width: 180px;
+}
+
+.instructor-team-field {
+  flex: 1;
+  min-width: 200px;
+}
+
+.instructor-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+  color: #374151;
+}
+
+.instructor-input,
+.instructor-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-size: 14px;
+  box-sizing: border-box;
+  background: #ffffff;
+}
+
+.instructor-button {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #2563eb;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.instructor-button:hover {
+  opacity: 0.92;
+}
+
+.instructor-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.instructor-button-secondary {
+  padding: 12px 18px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #111827;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.instructor-button-dark {
+  padding: 12px 18px;
+  border: none;
+  border-radius: 8px;
+  background: #111827;
+  color: #ffffff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.instructor-link-button {
+  margin-top: 12px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: #2563eb;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.instructor-message {
+  margin-top: 14px;
+  margin-bottom: 0;
+  color: #2563eb;
+  font-weight: 700;
+}
+
+.instructor-muted {
+  color: #6b7280;
+  margin: 0;
+}
+
+.workspace-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.workspace-tab {
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.workspace-tab.active {
+  border: 1px solid #1d4ed8;
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.workspace-details {
+  padding: 16px;
+  border-radius: 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+}
+
+.workspace-details p {
+  margin: 0 0 8px 0;
+  color: #374151;
+}
+
+.workspace-details p:last-child {
+  margin-bottom: 0;
+}
+
+.question-list {
+  padding-left: 20px;
+  margin-bottom: 16px;
+}
+
+.question-list li {
+  margin-bottom: 10px;
+  color: #374151;
+}
+
+.remove-button {
+  margin-left: 10px;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #b91c1c;
+  cursor: pointer;
+}
+
+.inline-input-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.inline-input-row .instructor-input {
+  flex: 1;
+  min-width: 250px;
+}
+
+.actions-row {
+  margin-top: 30px;
+  margin-bottom: 20px;
+}
+
+.team-box {
+  margin-bottom: 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+}
+
+.config-list {
+  padding-left: 20px;
+  margin: 0;
+  color: #4b5563;
+}
+
+.config-list li {
+  margin-bottom: 6px;
+}
+
+.instructor-text {
+  color: #374151;
+}
+
+.strategy-help {
+  margin-top: 10px;
+  margin-bottom: 0;
+  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .instructor-page {
+    padding: 24px 14px;
+  }
+
+  .instructor-title {
+    font-size: 26px;
+  }
+
+  .instructor-button-secondary {
+    margin-left: 0;
+    margin-top: 10px;
+  }
+
+  .top-actions-row {
+    margin-bottom: 20px;
+  }
+
+  .availability-grid-button {
+    text-decoration: none;
+  }
+}

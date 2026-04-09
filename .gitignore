@@ -2,7 +2,7 @@
 node_modules
 
 # Environment variables
-.env
+.env*
 .env.local
 .env.*.local
 
@@ -30,6 +30,7 @@ Thumbs.db
 .history
 
 
+package-lock.json
 yarn-error.log
 yarn.lock
 
