@@ -1,17 +1,45 @@
+/**
+ * SkillBalancedStrategy
+ * Maximises unique skill coverage per team.
+ * Anchors on high-skill students, then adds members whose skills most
+ * complement the team's existing skill set.
+ */
 class SkillBalancedStrategy {
   generate(students, teamSize) {
-    const sorted = [...students].sort((a, b) => {
-      return b.skills.length - a.skills.length;
-    });
+    if (students.length === 0) return [];
 
-    return this.group(sorted, teamSize);
-  }
+    const pool = [...students].sort((a, b) => b.skills.length - a.skills.length);
 
-  group(students, teamSize) {
     const teams = [];
+    const assigned = new Set();
 
-    for (let i = 0; i < students.length; i += teamSize) {
-      teams.push(students.slice(i, i + teamSize));
+    for (let i = 0; i < pool.length; i++) {
+      if (assigned.has(i)) continue;
+
+      const team = [pool[i]];
+      assigned.add(i);
+
+      while (team.length < teamSize) {
+        let bestIdx = -1;
+        let bestNewSkills = -1;
+
+        const teamSkills = new Set(team.flatMap((s) => s.skills));
+
+        for (let j = 0; j < pool.length; j++) {
+          if (assigned.has(j)) continue;
+          const newSkills = pool[j].skills.filter((sk) => !teamSkills.has(sk)).length;
+          if (newSkills > bestNewSkills) {
+            bestNewSkills = newSkills;
+            bestIdx = j;
+          }
+        }
+
+        if (bestIdx === -1) break;
+        team.push(pool[bestIdx]);
+        assigned.add(bestIdx);
+      }
+
+      teams.push(team);
     }
 
     return teams;
