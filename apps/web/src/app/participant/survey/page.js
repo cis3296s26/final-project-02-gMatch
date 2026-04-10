@@ -117,15 +117,26 @@ function SurveyContent() {
     }
 
     function handleAddSkill(e) {
-      if (e.key === "Enter") {
+      if (e.key === "Backspace" && skillInput === "" && skills.length > 0) {
+        setSkills(skills.slice(0, -1));
+        return;
+      }
+
+      if (e.key === "Enter" || e.key === ",") {
         e.preventDefault();
 
-        const newSkill = skillInput.trim();
+        let newSkill = skillInput.trim();
+
+        // remove trailing comma if it exists
+        if (newSkill.endsWith(",")) {
+          newSkill = newSkill.slice(0, -1).trim();
+        }
 
         if (newSkill !== "" && !skills.includes(newSkill)) {
           setSkills([...skills, newSkill]);
-          setSkillInput("");
         }
+
+        setSkillInput("");
       }
     }
 
@@ -245,10 +256,27 @@ function SurveyContent() {
     
                   {/* SKILLS */}
                   {q.type === "skills" && (
-                    <div>
+                    <div
+                      className={`w-full border rounded p-2 flex flex-wrap gap-2 ${errors.skills ? "border-red-500" : ""}`}
+                    >
+                      {skills.map((skill, index) => (
+                        <div
+                          key={index}
+                          className="bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-2"
+                        >
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => removeSkill(index)}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+
                       <input
-                        className={`w-full border rounded p-2 ${errors.skills ? "border-red-500" : ""}`}
-                        placeholder="Type a skill and press Enter"
+                        className="flex-1 outline-none min-w-[120px]"
+                        placeholder="Type a skill, press Enter or comma"
                         value={skillInput}
                         onChange={(e) => {
                           setSkillInput(e.target.value);
@@ -256,26 +284,6 @@ function SurveyContent() {
                         }}
                         onKeyDown={handleAddSkill}
                       />
-
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {skills.map((skill, index) => (
-                          <div
-                            key={index}
-                            className="bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-2"
-                          >
-                            {skill}
-                            <button
-                              type="button"
-                              onClick={() => removeSkill(index)}
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      {errors.skills && (
-                        <p className="mt-2 text-sm text-red-600">{errors.skills}</p>
-                      )}
                     </div>
                   )}
 
