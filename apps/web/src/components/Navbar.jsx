@@ -15,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import NotificationsBell from "@/components/NotificationsBell";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export default function Navbar({ variant = "landing" }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -37,8 +38,9 @@ export default function Navbar({ variant = "landing" }) {
             </span>
           </Link>
 
-          {/* Right side: bell + hamburger */}
-          <div className="flex items-center gap-2">
+          {/* Right side: theme + bell + hamburger */}
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
             <NotificationsBell />
             <button
               type="button"

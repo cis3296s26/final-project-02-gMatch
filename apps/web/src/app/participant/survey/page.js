@@ -14,7 +14,7 @@ function SurveyContent() {
     const { data: session } = useSession();
     const searchParams = useSearchParams();
     const workspaceId = searchParams.get("workspaceId");
-    const [name, setName] = useState("");
+    const [textAnswers, setTextAnswers] = useState({});
     const [skills, setSkills] = useState([]);
     const [skillInput, setSkillInput] = useState("");
     const [day, setDay] = useState("");
@@ -26,32 +26,12 @@ function SurveyContent() {
     const [submitError, setSubmitError] = useState("");
     const [errors, setErrors] = useState({});
     
-    /* Designed this way to keep built-in supported question types so the survey 
-    stays stable, while the saved workspace form decides which sections should be shown. */
-
     const [formQuestions, setFormQuestions] = useState([]);
     const [isLoadingForm, setIsLoadingForm] = useState(true);
 
-    const hasNoSavedForm = formQuestions.length === 0;
-
-    const hasSavedSkillsQuestion =
-      hasNoSavedForm ||
-      formQuestions.some(
-        (question) => question.type === "skill-tag" || question.id === "skills"
-      );
-
-    const hasSavedAvailabilityQuestion =
-      hasNoSavedForm ||
-      formQuestions.some(
-        (question) => question.type === "availability-grid" || question.id === "availability"
-      );
-
-    const questions = [
-      { id: "name", label: "Name", type: "text" },
-      ...(hasSavedSkillsQuestion ? [{ id: "skills", label: "Skills", type: "skills" }] : []),
-      ...(hasSavedAvailabilityQuestion
-        ? [{ id: "availability", label: "Availability", type: "availability" }]
-        : []),
+    const activeQuestions = formQuestions.length > 0 ? formQuestions : [
+      { id: "skills", label: "Skills", type: "skill-tag" },
+      { id: "availability", label: "Availability", type: "availability-grid" }
     ];
 
     function clearError(field) {
@@ -101,20 +81,18 @@ function SurveyContent() {
       setSubmitError("");
 
       const nextErrors = {};
-      const hasSkillsQuestion = questions.some((q) => q.id === "skills");
-      const hasAvailabilityQuestion = questions.some((q) => q.id === "availability");
-
-      if (!name.trim()) {
-        nextErrors.name = "Please enter your name.";
-      }
-
-      if (hasSkillsQuestion && skills.length === 0) {
-        nextErrors.skills = "Please add at least one skill.";
-      }
-
-      if (hasAvailabilityQuestion && availabilityList.length === 0) {
-        nextErrors.availability = "Please add at least one availability slot.";
-      }
+      
+      activeQuestions.forEach((q) => {
+        if ((q.type === "short-text" || q.type === "text") && !(textAnswers[q.id] || "").trim()) {
+          nextErrors[q.id] = `Please answer ${q.label}.`;
+        }
+        if ((q.type === "skill-tag" || q.id === "skills") && skills.length === 0) {
+          nextErrors[q.id] = "Please add at least one skill.";
+        }
+        if ((q.type === "availability-grid" || q.id === "availability") && availabilityList.length === 0) {
+          nextErrors[q.id] = "Please add at least one availability slot.";
+        }
+      });
 
       if (!workspaceId) {
         nextErrors.form = "Missing workspace. Open this survey from a workspace link.";
@@ -125,15 +103,18 @@ function SurveyContent() {
         return;
       }
 
-      const answers = [{ questionId: "name", value: name.trim() }];
-
-      if (hasSkillsQuestion) {
-        answers.push({ questionId: "skills", value: skills });
-      }
-
-      if (hasAvailabilityQuestion) {
-        answers.push({ questionId: "availability", value: availabilityList });
-      }
+      const answers = [];
+      activeQuestions.forEach((q) => {
+        if (q.type === "short-text" || q.type === "text") {
+          answers.push({ questionId: q.id, value: (textAnswers[q.id] || "").trim() });
+        }
+        if (q.type === "skill-tag" || q.id === "skills") {
+          answers.push({ questionId: q.id, value: skills });
+        }
+        if (q.type === "availability-grid" || q.id === "availability") {
+          answers.push({ questionId: q.id, value: availabilityList });
+        }
+      });
 
       const responseData = {
         workspaceId,
@@ -292,35 +273,35 @@ function SurveyContent() {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {questions.map((q) => (
+              {activeQuestions.map((q) => (
                 <div key={q.id}>
                   <p className="text-sm font-medium mb-1">
                     {q.label} <span className="text-red-500">*</span>
                   </p>
 
-                  {/* TEXT */}
-                  {q.type === "text" && (
+                  {/* DYNAMIC TEXT QUESTIONS */}
+                  {(q.type === "text" || q.type === "short-text") && (
                     <>
                     <input
-                      className={`w-full border rounded p-2 ${errors.name ? "border-red-500" : ""}`}
+                      className={`w-full border rounded p-2 ${errors[q.id] ? "border-red-500" : ""}`}
                       placeholder={q.label}
-                      value={name}
+                      value={textAnswers[q.id] || ""}
                       onChange={(e) => {
-                        setName(e.target.value);
-                        clearError("name");
+                        setTextAnswers({ ...textAnswers, [q.id]: e.target.value });
+                        clearError(q.id);
                       }}
                     />
 
-                    {errors.name && (
-                      <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+                    {errors[q.id] && (
+                      <p className="mt-1 text-sm text-red-600">{errors[q.id]}</p>
                     )}
                   </>
                 )}
     
                   {/* SKILLS */}
-                  {q.type === "skills" && (
+                  {(q.type === "skills" || q.type === "skill-tag" || q.id === "skills") && (
                     <div
-                      className={`w-full border rounded p-2 flex flex-wrap gap-2 ${errors.skills ? "border-red-500" : ""}`}
+                      className={`w-full border rounded p-2 flex flex-wrap gap-2 ${errors[q.id] ? "border-red-500" : ""}`}
                     >
                       {skills.map((skill, index) => (
                         <div
@@ -351,7 +332,7 @@ function SurveyContent() {
                   )}
 
                   {/* AVAILABILITY */}
-                  {q.type === "availability" && (
+                  {(q.type === "availability" || q.type === "availability-grid" || q.id === "availability") && (
                     <div className="space-y-3">
 
                       {/* Day selector */}

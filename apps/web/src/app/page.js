@@ -49,27 +49,76 @@ export default function LandingPage() {
     <div className="flex min-h-screen flex-col">
       <Navbar variant="landing" />
 
-      {/* Hero */}
-      <section className="py-24 sm:py-32 lg:py-40">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-border bg-muted px-3.5 py-1.5 text-sm font-medium text-primary">
-              <Users className="h-3.5 w-3.5" />
-              Smart Team Formation Platform
+      {/* Asymmetric Bolder Hero */}
+      <section className="relative overflow-hidden pt-32 pb-20 lg:pt-48 lg:pb-32">
+        {/* Typographic / Shape Ambient Background */}
+        <div className="absolute top-0 right-0 -mr-20 -mt-20 h-96 w-96 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-0 left-0 -ml-32 -mb-32 h-[500px] w-[500px] rounded-full bg-primary/5 blur-[120px]" />
+
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="grid lg:grid-cols-12 gap-16 lg:gap-8 items-center">
+            
+            <div className="lg:col-span-8">
+              <div className="mb-8 inline-flex items-center gap-2 rounded-none border-l-4 border-primary bg-muted/60 pl-3 pr-4 py-2 text-sm font-bold text-foreground uppercase tracking-widest">
+                <Users className="h-4 w-4 text-primary" />
+                The Group Matching Engine
+              </div>
+              
+              <h1 className="text-6xl sm:text-8xl lg:text-[7.5rem] font-black tracking-tighter leading-[0.9] text-foreground mb-8">
+                Build Teams. <br />
+                <span className="text-primary italic pr-4">Instantly.</span>
+              </h1>
+              
+              <p className="max-w-2xl text-xl sm:text-2xl font-medium leading-relaxed text-muted-foreground mb-12">
+                Drop the infinite spreadsheets. gMatch maps overlapping schedules, distinct skillsets, and hard constraints into mathematically optimized rosters in seconds.
+              </p>
+
+              <div className="scale-110 origin-left">
+                <HeroCTAs />
+              </div>
             </div>
 
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
-              Build Better Teams,{" "}
-              <span className="text-primary">Automatically</span>
-            </h1>
-
-            <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-muted-foreground">
-              gMatch uses structured surveys and configurable algorithms to create balanced,
-              compatible project teams. No more manual spreadsheets or random assignments.
-            </p>
-
-            <HeroCTAs />
+            <div className="lg:col-span-4 hidden lg:block">
+               {/* Abstract Typography Art Element for Bolder Aesthetic */}
+               <div className="h-full w-full flex items-center justify-center p-8 bg-card border-[0.5px] border-border/40 rounded-3xl shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-500">
+                  <div className="text-[12rem] font-black leading-none text-muted opacity-30 select-none">
+                    <span className="text-foreground">g</span><span className="text-primary opacity-80">M</span>
+                  </div>
+               </div>
+            </div>
           </div>
+        </div>
+      </section>
+
+      {/* Feature Amplification Grid */}
+      <section className="py-24 bg-foreground text-background">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          
+          <div className="mb-20 max-w-3xl">
+            <h2 className="text-5xl sm:text-6xl font-black tracking-tighter leading-none mb-6">
+              Total Control. <br /> Zero Friction.
+            </h2>
+            <p className="text-xl text-muted-foreground font-medium">
+              A meticulously engineered pipeline from participant intake to automated publishing.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-16">
+            {features.map((feature, i) => (
+              <div key={i} className="flex flex-col group items-start">
+                <div className="bg-primary/20 text-background p-4 rounded-2xl mb-6 transition-transform duration-300 group-hover:-translate-y-2">
+                  <feature.icon className="h-8 w-8 text-background stroke-[2.5px]" />
+                </div>
+                <h3 className="text-2xl font-bold tracking-tight mb-3 text-background">
+                  {feature.title}
+                </h3>
+                <p className="text-muted text-base leading-relaxed font-medium">
+                  {feature.description}
+                </p>
+              </div>
+            ))}
+          </div>
+
         </div>
       </section>
 

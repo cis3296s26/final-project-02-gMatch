@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Plus, FolderOpen, Users, Copy, Check, Loader2,
-  KeyRound, LogOut, CheckCircle, AlertCircle, X,
+  KeyRound, LogOut, CheckCircle, AlertCircle, X, ArrowRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -220,28 +220,7 @@ export default function UnifiedDashboard() {
             </div>
           </div>
 
-          {/* Join Section */}
-          <Card className="mt-6">
-            <CardContent className="p-5">
-              <h2 className="mb-3 text-lg font-semibold">Join a Workspace</h2>
-              <form onSubmit={handleJoin} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                <div className="flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-2">
-                  <KeyRound className="h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="text"
-                    placeholder="Enter invite code"
-                    maxLength={6}
-                    value={inviteCode}
-                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                    className="w-36 bg-transparent text-sm uppercase tracking-widest outline-none placeholder:text-muted-foreground/60 placeholder:normal-case placeholder:tracking-normal"
-                  />
-                </div>
-                <Button type="submit" className="gap-2" disabled={joining || !inviteCode.trim()}>
-                  {joining ? "Joining..." : "Join Workspace"}
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+          {/* Inline Join Form removed from here, moving down to Joined section */}
 
           {/* Create Modal */}
           {showCreate && (
@@ -286,8 +265,8 @@ export default function UnifiedDashboard() {
             </div>
           )}
 
-          {/* ── Organizer Workspaces ── */}
-          <div className="mt-10">
+          {/* ── Organizer Workspaces (Primary Focus) ── */}
+          <div className="mt-8 mb-16">
             <h2 className="text-xl font-semibold tracking-tight">
               Your Workspaces
               <span className="ml-2 text-sm font-normal text-muted-foreground">
@@ -317,7 +296,7 @@ export default function UnifiedDashboard() {
               <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {organizerWs.map((ws) => (
                   <Link key={ws._id} href={`/organizer/workspace/${ws._id}`}>
-                    <Card className="cursor-pointer border transition-colors hover:border-primary">
+                    <Card className="cursor-pointer rounded-2xl border border-border/50 bg-card shadow-sm transition-all hover:-translate-y-1 hover:shadow-md hover:border-primary/50 group">
                       <CardContent className="p-5">
                         <h3 className="font-semibold text-lg">{ws.name}</h3>
                         <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
@@ -351,13 +330,35 @@ export default function UnifiedDashboard() {
           </div>
 
           {/* ── Joined Workspaces ── */}
-          <div className="mt-10">
-            <h2 className="text-xl font-semibold tracking-tight">
-              Joined Workspaces
-              <span className="ml-2 text-sm font-normal text-muted-foreground">
-                (as participant)
-              </span>
-            </h2>
+          <div className="mt-12">
+            <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-6">
+              <div>
+                <h2 className="text-xl font-bold tracking-tight">
+                  Joined Workspaces
+                </h2>
+                <p className="text-sm font-medium text-muted-foreground mt-1">
+                  Surveys and teams you are participating in.
+                </p>
+              </div>
+
+              {/* Sleek Inline Join Tool */}
+              <form onSubmit={handleJoin} className="flex items-center gap-2 bg-muted/30 p-1.5 rounded-2xl border border-border/50">
+                <div className="flex items-center gap-2 px-3">
+                  <KeyRound className="h-4 w-4 text-primary/70" />
+                  <input
+                    type="text"
+                    placeholder="Invite Code (6 chars)"
+                    maxLength={6}
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                    className="w-36 bg-transparent text-sm font-medium uppercase tracking-widest outline-none placeholder:text-muted-foreground/50 placeholder:tracking-normal placeholder:normal-case"
+                  />
+                </div>
+                <Button type="submit" size="sm" className="rounded-xl px-6 font-bold" disabled={joining || !inviteCode.trim()}>
+                  {joining ? "Joining..." : "Join"}
+                </Button>
+              </form>
+            </div>
 
             {participantWs.length === 0 ? (
               <div className="mt-4 flex flex-col items-center justify-center">
@@ -374,41 +375,45 @@ export default function UnifiedDashboard() {
                 </Card>
               </div>
             ) : (
-              <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="flex flex-col gap-3">
                 {participantWs.map((ws) => (
-                  <Card key={ws._id} className="border transition-colors hover:border-primary">
-                    <CardContent className="p-5">
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h3 className="font-semibold text-lg">{ws.name}</h3>
-                          <span className="mt-1 inline-block rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-700">
-                            Joined
-                          </span>
+                  <Link key={ws._id} href={`/participant/survey?workspaceId=${ws._id}`}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 rounded-2xl border border-border/50 bg-card shadow-sm transition-all hover:bg-muted/30 hover:border-primary/30 group cursor-pointer">
+                      <div className="flex items-center gap-4 mb-4 sm:mb-0">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
+                           <Users className="h-5 w-5 text-primary" />
                         </div>
+                        <div>
+                          <div className="flex items-center gap-3 mb-1">
+                            <h3 className="font-bold text-lg leading-none">{ws.name}</h3>
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-green-100 text-green-700">
+                              Joined
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground font-medium">
+                            <div className="flex items-center gap-1.5">
+                              {ws.participants?.length || 0} participants
+                            </div>
+                            <div className="w-1 h-1 rounded-full bg-border"></div>
+                            <div>Team Size: {ws.teamSize}</div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3">
                         <button
                           type="button"
-                          onClick={() => handleLeave(ws._id, ws.name)}
-                          className="inline-flex items-center gap-1 rounded-md border border-red-200 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50"
+                          onClick={(e) => { e.preventDefault(); handleLeave(ws._id, ws.name); }}
+                          className="px-4 py-2 text-sm font-bold text-destructive/80 hover:text-destructive hover:bg-destructive/10 rounded-xl transition-colors focus:outline-none"
                         >
-                          <LogOut className="h-4 w-4" />
                           Leave
                         </button>
-                      </div>
-                      <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
-                        <div className="flex items-center gap-1.5">
-                          <Users className="h-4 w-4" />
-                          {ws.participants?.length || 0} participants
+                        <div className="hidden sm:flex px-4 py-2 items-center gap-2 text-sm font-bold text-primary bg-primary/10 rounded-xl group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                          Take Survey <ArrowRight className="w-4 h-4 ml-1" />
                         </div>
-                        <div>Team size: {ws.teamSize}</div>
                       </div>
-                      <Link
-                        href={`/participant/survey?workspaceId=${ws._id}`}
-                        className="mt-3 inline-block text-sm font-medium text-primary"
-                      >
-                        Fill out survey →
-                      </Link>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </Link>
                 ))}
               </div>
             )}
