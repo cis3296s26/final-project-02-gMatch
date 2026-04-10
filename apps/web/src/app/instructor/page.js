@@ -28,7 +28,11 @@ export default function DashboardPage() {
     "What skills do you have?"
   ]);
   const [newQuestion, setNewQuestion] = useState("");
-
+  const [newQuestionType, setNewQuestionType] = useState("multiple-choice");
+  const [newQuestionOptions, setNewQuestionOptions] = useState("");
+  const [questionMessage, setQuestionMessage] = useState("");
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [isSavingQuestions, setIsSavingQuestions] = useState(false);
   const [workspaceName, setWorkspaceName] = useState("");
   const [workspaceMaxGroupSize, setWorkspaceMaxGroupSize] = useState(4);
   const [workspaces, setWorkspaces] = useState([]);
@@ -73,6 +77,82 @@ export default function DashboardPage() {
       setHasGenerated(false);
     }
   }, [activeWorkspaceId, workspaces]);
+
+  useEffect(() => {
+    if (!activeWorkspaceId || !session?.token) return;
+
+    async function fetchFormQuestions() {
+      setIsLoadingQuestions(true);
+      setQuestionMessage("");
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/forms/${activeWorkspaceId}`, {
+          headers: {
+            Authorization: `Bearer ${session?.token || ""}`,
+          },
+          credentials: "include",
+        });
+
+        if (!res.ok) {
+          throw new Error("Failed to load form questions");
+        }
+
+        const data = await res.json();
+        const savedQuestions = data.form?.questions || [];
+
+        if (savedQuestions.length > 0) {
+          setQuestions(savedQuestions);
+        } else {
+          setQuestions([]);
+        }
+      } catch (error) {
+        console.error("Failed to load form questions:", error);
+        setQuestions([]);
+        setQuestionMessage("Could not load survey questions.");
+      } finally {
+        setIsLoadingQuestions(false);
+      }
+    }
+
+    fetchFormQuestions();
+  }, [activeWorkspaceId, session]);
+
+  const saveQuestionsToBackend = async (nextQuestions) => {
+    if (!activeWorkspaceId || !session?.token) {
+      setQuestionMessage("Please select a workspace first.");
+      return false;
+    }
+
+    setIsSavingQuestions(true);
+    setQuestionMessage("");
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/forms/${activeWorkspaceId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session?.token || ""}`,
+        },
+        credentials: "include",
+        body: JSON.stringify({ questions: nextQuestions }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to save form questions");
+      }
+
+      const data = await res.json();
+      setQuestions(data.form?.questions || []);
+      setQuestionMessage("Survey questions saved.");
+      return true;
+    } catch (error) {
+      console.error("Failed to save form questions:", error);
+      setQuestionMessage("Could not save survey questions.");
+      return false;
+    } finally {
+      setIsSavingQuestions(false);
+    }
+  };
 
   // Fetch survey responses when active workspace changes
   useEffect(() => {
@@ -354,18 +434,84 @@ export default function DashboardPage() {
     }
   };
 
-  const addQuestion = () => {
-    if (newQuestion.trim() !== "") {
+  const addQuestion = async () => {
+    const trimmedQuestion = newQuestion.trim();
 
-      // TODO: persist to server
-      
-      setQuestions([...questions, newQuestion]);
+    if (!trimmedQuestion) {
+      setQuestionMessage("Please enter a question.");
+      return;
+    }
+
+    let questionId = `q_${Date.now()}`;
+
+    if (newQuestionType === "availability-grid") {
+      questionId = "availability";
+    }
+
+    if (newQuestionType === "skill-tag") {
+      questionId = "skills";
+    }
+
+    const normalizedQuestions = questions.map((question, index) => {
+      if (typeof question === "string") {
+        return {
+          id: `q_${index + 1}`,
+          type: question.toLowerCase().includes("skill") ? "skill-tag" : "availability-grid",
+          label: question,
+          tag: "",
+          options: [],
+        };
+      }
+
+      return question;
+    });
+
+    if (normalizedQuestions.some((question) => question.id === questionId)) {
+      setQuestionMessage("That question type already exists in this workspace.");
+      return;
+    }
+
+    const nextQuestion = {
+      id: questionId,
+      type: newQuestionType,
+      label: trimmedQuestion,
+      tag: "",
+      options:
+        newQuestionType === "multiple-choice"
+          ? newQuestionOptions
+              .split(",")
+              .map((option) => option.trim())
+              .filter(Boolean)
+          : [],
+    };
+
+    const nextQuestions = [...normalizedQuestions, nextQuestion];
+    const saved = await saveQuestionsToBackend(nextQuestions);
+
+    if (saved) {
       setNewQuestion("");
+      setNewQuestionType("multiple-choice");
+      setNewQuestionOptions("");
     }
   };
 
-  const removeQuestion = (index) => {
-    setQuestions(questions.filter((_, i) => i !== index));
+  const removeQuestion = async (index) => {
+    const normalizedQuestions = questions.map((question, i) => {
+      if (typeof question === "string") {
+        return {
+          id: `q_${i + 1}`,
+          type: question.toLowerCase().includes("skill") ? "skill-tag" : "availability-grid",
+          label: question,
+          tag: "",
+          options: [],
+        };
+      }
+
+      return question;
+    });
+
+    const nextQuestions = normalizedQuestions.filter((_, i) => i !== index);
+    await saveQuestionsToBackend(nextQuestions);
   };
 
   const formatStrategyName = (value) => {
@@ -521,19 +667,46 @@ export default function DashboardPage() {
           <div className="instructor-card">
             <h3>Survey Questions</h3>
 
+            {isLoadingQuestions && (
+              <p className="instructor-muted">Loading saved questions...</p>
+            )}
+
             <ul className="question-list">
               {questions.map((q, i) => (
-                <li key={i}>
-                  {q}
+                <li key={q?.id || i}>
+                  <div>
+                    <div>{typeof q === "string" ? q : q.label}</div>
+                    {typeof q !== "string" && (
+                      <div className="instructor-muted">
+                        Type: {q.type}
+                        {q.type === "multiple-choice" && q.options?.length > 0
+                          ? ` | Options: ${q.options.join(", ")}`
+                          : ""}
+                      </div>
+                    )}
+                  </div>
                   <button
                     className="remove-button"
                     onClick={() => removeQuestion(i)}
+                    disabled={isSavingQuestions}
                   >
                     Remove
                   </button>
                 </li>
               ))}
             </ul>
+
+            <div className="inline-input-row">
+              <select
+                className="instructor-select"
+                value={newQuestionType}
+                onChange={(e) => setNewQuestionType(e.target.value)}
+              >
+                <option value="multiple-choice">Multiple Choice</option>
+                <option value="availability-grid">Availability Grid</option>
+                <option value="skill-tag">Skill Tag</option>
+              </select>
+            </div>
 
             <div className="inline-input-row">
               <input
@@ -543,10 +716,30 @@ export default function DashboardPage() {
                 value={newQuestion}
                 onChange={(e) => setNewQuestion(e.target.value)}
               />
-              <button className="instructor-button" onClick={addQuestion}>
-                Add Question
+              <button
+                className="instructor-button"
+                onClick={addQuestion}
+                disabled={isSavingQuestions}
+              >
+                {isSavingQuestions ? "Saving..." : "Add Question"}
               </button>
             </div>
+
+            {newQuestionType === "multiple-choice" && (
+              <div className="inline-input-row">
+                <input
+                  className="instructor-input"
+                  type="text"
+                  placeholder="Enter options separated by commas"
+                  value={newQuestionOptions}
+                  onChange={(e) => setNewQuestionOptions(e.target.value)}
+                />
+              </div>
+            )}
+
+            {questionMessage && (
+              <p className="instructor-message">{questionMessage}</p>
+            )}
           </div>
 
           <div className="actions-row">
@@ -629,7 +822,7 @@ export default function DashboardPage() {
             </p>
             <ul className="config-list">
               {questions.map((q, i) => (
-                <li key={i}>{q}</li>
+                <li key={q?.id || i}>{typeof q === "string" ? q : q.label}</li>
               ))}
             </ul>
           </div>
