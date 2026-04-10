@@ -29,10 +29,16 @@ function SurveyContent() {
     const [formQuestions, setFormQuestions] = useState([]);
     const [isLoadingForm, setIsLoadingForm] = useState(true);
 
-    const activeQuestions = formQuestions.length > 0 ? formQuestions : [
-      { id: "skills", label: "Skills", type: "skill-tag" },
-      { id: "availability", label: "Availability", type: "availability-grid" }
-    ];
+    const activeQuestions = (() => {
+      const base = [];
+      if (!formQuestions.some((q) => q.type === "skill-tag" || q.id === "skills")) {
+        base.push({ id: "skills", label: "Skills", type: "skill-tag" });
+      }
+      if (!formQuestions.some((q) => q.type === "availability-grid" || q.id === "availability")) {
+        base.push({ id: "availability", label: "Availability", type: "availability-grid" });
+      }
+      return [...base, ...formQuestions];
+    })();
 
     function clearError(field) {
       setErrors((prev) => {
@@ -83,7 +89,7 @@ function SurveyContent() {
       const nextErrors = {};
       
       activeQuestions.forEach((q) => {
-        if ((q.type === "short-text" || q.type === "text") && !(textAnswers[q.id] || "").trim()) {
+        if ((q.type === "short-text" || q.type === "text" || q.type === "multiple-choice") && !(textAnswers[q.id] || "").trim()) {
           nextErrors[q.id] = `Please answer ${q.label}.`;
         }
         if ((q.type === "skill-tag" || q.id === "skills") && skills.length === 0) {
@@ -105,7 +111,7 @@ function SurveyContent() {
 
       const answers = [];
       activeQuestions.forEach((q) => {
-        if (q.type === "short-text" || q.type === "text") {
+        if (q.type === "short-text" || q.type === "text" || q.type === "multiple-choice") {
           answers.push({ questionId: q.id, value: (textAnswers[q.id] || "").trim() });
         }
         if (q.type === "skill-tag" || q.id === "skills") {
@@ -251,7 +257,7 @@ function SurveyContent() {
               Survey Submitted!
             </h1>
 
-            <Link href="/participant/dashboard">
+            <Link href="/dashboard">
               <Button>
                 Back to Dashboard
               </Button>
@@ -298,19 +304,45 @@ function SurveyContent() {
                   </>
                 )}
     
+                  {/* MULTIPLE CHOICE QUESTIONS */}
+                  {q.type === "multiple-choice" && (
+                    <>
+                    <select
+                      className={`w-full border rounded-lg p-2.5 outline-none transition-colors focus:ring-2 focus:ring-primary ${errors[q.id] ? "border-red-500" : "bg-card border-border"}`}
+                      value={textAnswers[q.id] || ""}
+                      onChange={(e) => {
+                        setTextAnswers({ ...textAnswers, [q.id]: e.target.value });
+                        clearError(q.id);
+                      }}
+                    >
+                      <option value="">Select an option</option>
+                      {q.options?.map((opt, i) => (
+                        <option key={i} value={opt}>
+                          {opt}
+                        </option>
+                      ))}
+                    </select>
+
+                    {errors[q.id] && (
+                      <p className="mt-1 text-sm text-red-600">{errors[q.id]}</p>
+                    )}
+                  </>
+                  )}
+    
                   {/* SKILLS */}
                   {(q.type === "skills" || q.type === "skill-tag" || q.id === "skills") && (
                     <div
-                      className={`w-full border rounded p-2 flex flex-wrap gap-2 ${errors[q.id] ? "border-red-500" : ""}`}
+                      className={`w-full border rounded-lg p-2 flex flex-wrap gap-2 transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${errors[q.id] ? "border-red-500" : "border-input bg-background"}`}
                     >
                       {skills.map((skill, index) => (
                         <div
                           key={index}
-                          className="bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-2"
+                          className="bg-primary/10 text-primary text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1.5"
                         >
                           {skill}
                           <button
                             type="button"
+                            className="text-primary/70 hover:text-primary transition-colors focus:outline-none"
                             onClick={() => removeSkill(index)}
                           >
                             ✕
@@ -319,8 +351,8 @@ function SurveyContent() {
                       ))}
 
                       <input
-                        className="flex-1 outline-none min-w-[120px]"
-                        placeholder="Type a skill, press Enter or comma"
+                        className="flex-1 bg-transparent border-none outline-none min-w-[150px] text-sm py-1 placeholder:text-muted-foreground"
+                        placeholder="Type a skill, press Enter or comma..."
                         value={skillInput}
                         onChange={(e) => {
                           setSkillInput(e.target.value);
