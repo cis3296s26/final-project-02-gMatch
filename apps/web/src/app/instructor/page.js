@@ -217,7 +217,7 @@ export default function DashboardPage() {
     try {
       const response = await fetch(`${API_BASE_URL}/api/workspaces`, {
         credentials: "include",
-        headers: { 'Authorization': `Bearer ${session.token || ''}` },
+        headers: { Authorization: `Bearer ${session?.token || ""}` },
       });
 
       if (!response.ok) {
@@ -521,6 +521,37 @@ export default function DashboardPage() {
     return value;
   };
 
+  async function handlePublishTeams() {
+    if (!activeWorkspaceId) {
+      setStatusMessage("No workspace selected.");
+      return;
+    }
+
+    try {
+      const res = await fetch(
+        `${API_BASE_URL}/api/workspaces/${activeWorkspaceId}/publish`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session?.token || ""}`,
+          },
+          credentials: "include",
+        }
+      );
+
+      if (res.ok) {
+        setStatusMessage("Teams published successfully!");
+        await loadWorkspaces();
+      } else {
+        const err = await res.json();
+        setStatusMessage(err.error || "Failed to publish teams.");
+      }
+    } catch (err) {
+      console.error(err);
+      setStatusMessage("Error publishing teams.");
+    }
+  }
+
   return (
     <>
       <Navbar />
@@ -748,12 +779,21 @@ export default function DashboardPage() {
             </button>
 
             {hasGenerated && (
-              <button
-                className="instructor-button-secondary"
-                onClick={generateTeams}
-              >
-                Regenerate Teams
-              </button>
+              <>
+                <button
+                  className="instructor-button-secondary"
+                  onClick={generateTeams}
+                >
+                  Regenerate Teams
+                </button>
+
+                <button
+                  className="instructor-button"
+                  onClick={handlePublishTeams}
+                >  
+                Publish Teams
+                </button>
+              </>
             )}
           </div>
 

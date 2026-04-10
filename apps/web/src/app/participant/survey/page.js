@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -25,12 +25,33 @@ function SurveyContent() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
     const [errors, setErrors] = useState({});
+    
+    /* Designed this way to keep built-in supported question types so the survey 
+    stays stable, while the saved workspace form decides which sections should be shown. */
 
-    //to make the survey dynamic (concept)
+    const [formQuestions, setFormQuestions] = useState([]);
+    const [isLoadingForm, setIsLoadingForm] = useState(true);
+
+    const hasNoSavedForm = formQuestions.length === 0;
+
+    const hasSavedSkillsQuestion =
+      hasNoSavedForm ||
+      formQuestions.some(
+        (question) => question.type === "skill-tag" || question.id === "skills"
+      );
+
+    const hasSavedAvailabilityQuestion =
+      hasNoSavedForm ||
+      formQuestions.some(
+        (question) => question.type === "availability-grid" || question.id === "availability"
+      );
+
     const questions = [
       { id: "name", label: "Name", type: "text" },
-      { id: "skills", label: "Skills", type: "skills" },
-      { id: "availability", label: "Availability", type: "availability" },
+      ...(hasSavedSkillsQuestion ? [{ id: "skills", label: "Skills", type: "skills" }] : []),
+      ...(hasSavedAvailabilityQuestion
+        ? [{ id: "availability", label: "Availability", type: "availability" }]
+        : []),
     ];
 
     function clearError(field) {
@@ -41,21 +62,57 @@ function SurveyContent() {
       });
     }
 
+    useEffect(() => {
+      async function fetchFormQuestions() {
+        if (!workspaceId || !session?.token) {
+          setIsLoadingForm(false);
+          return;
+        }
+
+        try {
+          setIsLoadingForm(true);
+
+          const res = await fetch(`${API_URL}/api/forms/${workspaceId}`, {
+            headers: {
+              Authorization: `Bearer ${session?.token || ""}`,
+            },
+            credentials: "include",
+          });
+
+          if (!res.ok) {
+            throw new Error("Failed to load form questions");
+          }
+
+          const data = await res.json();
+          setFormQuestions(data.form?.questions || []);
+        } catch (error) {
+          console.error("Failed to load form questions:", error);
+          setFormQuestions([]);
+        } finally {
+          setIsLoadingForm(false);
+        }
+      }
+
+      fetchFormQuestions();
+    }, [workspaceId, session]);
+
     async function handleSubmit(e) {
       e.preventDefault();
       setSubmitError("");
 
       const nextErrors = {};
+      const hasSkillsQuestion = questions.some((q) => q.id === "skills");
+      const hasAvailabilityQuestion = questions.some((q) => q.id === "availability");
 
       if (!name.trim()) {
         nextErrors.name = "Please enter your name.";
       }
 
-      if (skills.length === 0) {
+      if (hasSkillsQuestion && skills.length === 0) {
         nextErrors.skills = "Please add at least one skill.";
       }
 
-      if (availabilityList.length === 0) {
+      if (hasAvailabilityQuestion && availabilityList.length === 0) {
         nextErrors.availability = "Please add at least one availability slot.";
       }
 
@@ -68,36 +125,32 @@ function SurveyContent() {
         return;
       }
 
+      const answers = [{ questionId: "name", value: name.trim() }];
+
+      if (hasSkillsQuestion) {
+        answers.push({ questionId: "skills", value: skills });
+      }
+
+      if (hasAvailabilityQuestion) {
+        answers.push({ questionId: "availability", value: availabilityList });
+      }
+
       const responseData = {
-        workspaceId: workspaceId,
+        workspaceId,
         participantId: session?.user?.id,
-        answers: [
-          { questionId: "name", value: name.trim() },
-          { questionId: "skills", value: skills },
-          { questionId: "availability", value: availabilityList },
-        ],
+        answers,
       };
 
       try {
         setIsSubmitting(true);
 
-      if (name && skills.length > 0 && availabilityList.length > 0) {
-        const responseData = {
-          workspaceId: workspaceId,
-          participantId: session?.user?.id,
-          answers: [
-            { questionId: "name", value: name },
-            { questionId: "skills", value: skills },
-            { questionId: "availability", value: availabilityList },
-          ],
-        };
-
         const res = await fetch(`${API_URL}/api/response`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${session?.token || ""}`,
+            Authorization: `Bearer ${session?.token || ""}`,
           },
+          credentials: "include",
           body: JSON.stringify(responseData),
         });
 
@@ -107,7 +160,6 @@ function SurveyContent() {
 
         await res.json();
         setSubmitted(true);
-        }
       } catch (error) {
         console.error(error);
         setSubmitError("Could not submit survey. Please try again.");
@@ -117,15 +169,26 @@ function SurveyContent() {
     }
 
     function handleAddSkill(e) {
-      if (e.key === "Enter") {
+      if (e.key === "Backspace" && skillInput === "" && skills.length > 0) {
+        setSkills(skills.slice(0, -1));
+        return;
+      }
+
+      if (e.key === "Enter" || e.key === ",") {
         e.preventDefault();
 
-        const newSkill = skillInput.trim();
+        let newSkill = skillInput.trim();
+
+        // remove trailing comma if it exists
+        if (newSkill.endsWith(",")) {
+          newSkill = newSkill.slice(0, -1).trim();
+        }
 
         if (newSkill !== "" && !skills.includes(newSkill)) {
           setSkills([...skills, newSkill]);
-          setSkillInput("");
         }
+
+        setSkillInput("");
       }
     }
 
@@ -187,6 +250,17 @@ function SurveyContent() {
       return `${formattedHour}:${minute} ${ampm}`;
     }
 
+    if (isLoadingForm) {
+      return (
+        <div className="flex min-h-screen flex-col bg-background">
+          <Navbar />
+          <div className="flex flex-1 items-center justify-center">
+            <p className="text-muted-foreground">Loading survey...</p>
+          </div>
+        </div>
+      );
+    }
+
     if (submitted) {
       return (
         <div className="flex min-h-screen flex-col bg-background">
@@ -245,10 +319,27 @@ function SurveyContent() {
     
                   {/* SKILLS */}
                   {q.type === "skills" && (
-                    <div>
+                    <div
+                      className={`w-full border rounded p-2 flex flex-wrap gap-2 ${errors.skills ? "border-red-500" : ""}`}
+                    >
+                      {skills.map((skill, index) => (
+                        <div
+                          key={index}
+                          className="bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-2"
+                        >
+                          {skill}
+                          <button
+                            type="button"
+                            onClick={() => removeSkill(index)}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+
                       <input
-                        className={`w-full border rounded p-2 ${errors.skills ? "border-red-500" : ""}`}
-                        placeholder="Type a skill and press Enter"
+                        className="flex-1 outline-none min-w-[120px]"
+                        placeholder="Type a skill, press Enter or comma"
                         value={skillInput}
                         onChange={(e) => {
                           setSkillInput(e.target.value);
@@ -256,26 +347,6 @@ function SurveyContent() {
                         }}
                         onKeyDown={handleAddSkill}
                       />
-
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {skills.map((skill, index) => (
-                          <div
-                            key={index}
-                            className="bg-blue-500 text-white px-3 py-1 rounded-full flex items-center gap-2"
-                          >
-                            {skill}
-                            <button
-                              type="button"
-                              onClick={() => removeSkill(index)}
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                      {errors.skills && (
-                        <p className="mt-2 text-sm text-red-600">{errors.skills}</p>
-                      )}
                     </div>
                   )}
 

@@ -276,6 +276,43 @@ export default function WorkspaceDetailPage() {
               </CardContent>
             </Card>
           </div>
+          {/* Teams Section */}
+          <Card className="mt-6">
+            <CardContent className="p-5">
+              <h2 className="mb-4 text-lg font-semibold">Teams</h2>
+
+              {workspace.status === "published" ? (
+                workspace.teams && workspace.teams.length > 0 ? (
+                  <div className="space-y-4">
+                    {workspace.teams.map((team, i) => (
+                      <div
+                        key={i}
+                        className="rounded-lg border border-border p-4"
+                      >
+                        <p className="font-medium mb-2">
+                          Team {i + 1}
+                        </p>
+
+                        <ul className="text-sm space-y-1">
+                          {team.members.map((member, j) => (
+                            <li key={j}>{member.name}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    No teams found.
+                  </p>
+                )
+              ) : (
+                <p className="text-sm text-muted-foreground">
+                  Teams not published yet
+                </p>
+              )}
+            </CardContent>
+          </Card>  
         </div>
       </main>
     </div>
