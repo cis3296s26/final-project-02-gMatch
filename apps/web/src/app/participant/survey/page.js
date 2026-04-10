@@ -14,7 +14,7 @@ function SurveyContent() {
     const { data: session } = useSession();
     const searchParams = useSearchParams();
     const workspaceId = searchParams.get("workspaceId");
-    const [name, setName] = useState("");
+    // const [name, setName] = useState("");
     const [skills, setSkills] = useState([]);
     const [skillInput, setSkillInput] = useState("");
     const [day, setDay] = useState("");
@@ -28,7 +28,7 @@ function SurveyContent() {
 
     //to make the survey dynamic (concept)
     const questions = [
-      { id: "name", label: "Name", type: "text" },
+      // { id: "name", label: "Name", type: "text" },
       { id: "skills", label: "Skills", type: "skills" },
       { id: "availability", label: "Availability", type: "availability" },
     ];
@@ -47,10 +47,6 @@ function SurveyContent() {
 
       const nextErrors = {};
 
-      if (!name.trim()) {
-        nextErrors.name = "Please enter your name.";
-      }
-
       if (skills.length === 0) {
         nextErrors.skills = "Please add at least one skill.";
       }
@@ -68,45 +64,35 @@ function SurveyContent() {
         return;
       }
 
-      const responseData = {
-        workspaceId: workspaceId,
-        participantId: session?.user?.id,
-        answers: [
-          { questionId: "name", value: name.trim() },
-          { questionId: "skills", value: skills },
-          { questionId: "availability", value: availabilityList },
-        ],
-      };
-
       try {
         setIsSubmitting(true);
 
-      if (name && skills.length > 0 && availabilityList.length > 0) {
-        const responseData = {
-          workspaceId: workspaceId,
-          participantId: session?.user?.id,
-          answers: [
-            { questionId: "name", value: name },
-            { questionId: "skills", value: skills },
-            { questionId: "availability", value: availabilityList },
-          ],
-        };
+        if (skills.length > 0 && availabilityList.length > 0) {
+          const responseData = {
+            workspaceId: workspaceId,
+            participantId: session?.user?.id,
+            answers: [
+              // { questionId: "name", value: name },
+              { questionId: "skills", value: skills },
+              { questionId: "availability", value: availabilityList },
+            ],
+          };
 
-        const res = await fetch(`${API_URL}/api/response`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${session?.token || ""}`,
-          },
-          body: JSON.stringify(responseData),
-        });
+          const res = await fetch(`${API_URL}/api/response`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${session?.token || ""}`,
+            },
+            body: JSON.stringify(responseData),
+          });
 
-        if (!res.ok) {
-          throw new Error("Failed to submit survey");
-        }
+          if (!res.ok) {
+            throw new Error("Failed to submit survey");
+          }
 
-        await res.json();
-        setSubmitted(true);
+          await res.json();
+          setSubmitted(true);
         }
       } catch (error) {
         console.error(error);
@@ -223,25 +209,6 @@ function SurveyContent() {
                   <p className="text-sm font-medium mb-1">
                     {q.label} <span className="text-red-500">*</span>
                   </p>
-
-                  {/* TEXT */}
-                  {q.type === "text" && (
-                    <>
-                    <input
-                      className={`w-full border rounded p-2 ${errors.name ? "border-red-500" : ""}`}
-                      placeholder={q.label}
-                      value={name}
-                      onChange={(e) => {
-                        setName(e.target.value);
-                        clearError("name");
-                      }}
-                    />
-
-                    {errors.name && (
-                      <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                    )}
-                  </>
-                )}
     
                   {/* SKILLS */}
                   {q.type === "skills" && (
