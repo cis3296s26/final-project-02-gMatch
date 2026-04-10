@@ -268,6 +268,36 @@ export default function ParticipantDashboard() {
                       </div>
                       <div>Team size: {ws.teamSize}</div>
                     </div>
+                    {/* Team Display */}
+                    {ws.status === "published" ? (
+                      ws.teams?.some(team =>
+                        team.members.some(m => m.name === session.user.name)
+                      ) ? (
+                        <div className="mt-3">
+                          <p className="text-sm font-semibold text-blue-600">
+                            Your Team:
+                          </p>
+
+                          <ul className="text-sm mt-1">
+                            {ws.teams
+                              .find(team =>
+                                team.members.some(m => m.name === session.user.name)
+                              )
+                              ?.members.map((m, i) => (
+                                <li key={i}>{m.name}</li>
+                              ))}
+                          </ul>
+                        </div>
+                      ) : (
+                        <p className="mt-3 text-sm text-muted-foreground">
+                          You are not assigned to a team.
+                        </p>
+                      )
+                    ) : (
+                      <p className="mt-3 text-sm text-muted-foreground">
+                        Teams not published yet
+                      </p>
+                    )}
                     <Link
                       href={`/participant/survey?workspaceId=${ws._id}`}
                       className="mt-3 inline-block text-sm font-medium text-primary"

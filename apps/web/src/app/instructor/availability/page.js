@@ -138,6 +138,7 @@ export default function AvailabilityPage() {
 
         return {
           id: r._id,
+          participantId: String(r.participantId?._id || r.participantId || ""),
           name: nameAnswer?.value || r.participantId?.name || "Unknown",
           skills: Array.isArray(skillsAnswer?.value) ? skillsAnswer.value : [],
           slots,
@@ -409,17 +410,17 @@ export default function AvailabilityPage() {
                           <TableBody>
                             {conflicts.map((c, i) => {
                               const nameA =
+                                c.participantAName ||
                                 students.find(
-                                  (s) =>
-                                    s.id === String(c.participantA) ||
-                                    s.id === c.participantA?._id
-                                )?.name || String(c.participantA);
+                                  (s) => s.participantId === String(c.participantA)
+                                )?.name ||
+                                c.participantA;
                               const nameB =
+                                c.participantBName ||
                                 students.find(
-                                  (s) =>
-                                    s.id === String(c.participantB) ||
-                                    s.id === c.participantB?._id
-                                )?.name || String(c.participantB);
+                                  (s) => s.participantId === String(c.participantB)
+                                )?.name ||
+                                c.participantB;
 
                               return (
                                 <TableRow key={i}>

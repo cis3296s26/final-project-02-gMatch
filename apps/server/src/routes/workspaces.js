@@ -281,4 +281,32 @@ router.put("/:workspaceId/teams", requireAuth, async (req, res) => {
   }
 });
 
+// Publish teams
+router.post("/:id/publish", requireAuth, async (req, res) => {
+  try {
+    const workspace = await Workspace.findById(req.params.id);
+
+    if (!workspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+
+    if (!workspace.teams || workspace.teams.length === 0) {
+      return res.status(400).json({ message: "No teams to publish" });
+    }
+
+    workspace.status = "published";
+    await workspace.save();
+
+    return res.json({
+      message: "Teams published successfully",
+      workspace
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to publish teams",
+      error: error.message
+    });
+  }
+});
+
 module.exports = router;

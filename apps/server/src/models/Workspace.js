@@ -43,6 +43,11 @@ const workspaceSchema = new mongoose.Schema(
         }
       ],
       default: []
+    },
+    status: {
+      type: String,
+      enum: ["open", "matching", "published"],
+      default: "open"
     }
   },
   { timestamps: true }
