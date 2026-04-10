@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from "react";
 import { useSession } from "next-auth/react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Navbar from "@/components/Navbar";
@@ -12,8 +12,10 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
 function SurveyContent() {
     const { data: session } = useSession();
+    const router = useRouter();
     const searchParams = useSearchParams();
     const workspaceId = searchParams.get("workspaceId");
+    const [workspace, setWorkspace] = useState(null);
     const [textAnswers, setTextAnswers] = useState({});
     const [skills, setSkills] = useState([]);
     const [skillInput, setSkillInput] = useState("");
@@ -47,6 +49,21 @@ function SurveyContent() {
         return next;
       });
     }
+
+    useEffect(() => {
+      if (!workspaceId || !session?.token) return;
+      async function fetchWorkspace() {
+        try {
+          const res = await fetch(`${API_URL}/api/workspaces/${workspaceId}`, {
+            headers: { Authorization: `Bearer ${session.token}` },
+          });
+          if (res.ok) setWorkspace(await res.json());
+        } catch (err) {
+          console.error("Failed to fetch workspace:", err);
+        }
+      }
+      fetchWorkspace();
+    }, [workspaceId, session]);
 
     useEffect(() => {
       async function fetchFormQuestions() {
@@ -141,9 +158,9 @@ function SurveyContent() {
           body: JSON.stringify(responseData),
         });
 
-        if (!res.ok) {
-          throw new Error("Failed to submit survey");
-        }
+          if (!res.ok) {
+            throw new Error("Failed to submit survey");
+          }
 
         await res.json();
         setSubmitted(true);
@@ -271,12 +288,17 @@ function SurveyContent() {
     <div className="flex min-h-screen flex-col bg-background">
       <Navbar />
 
-      <div className="flex flex-1 items-center justify-center p-6">
+      <div className="flex flex-1 items-center justify-center p-6 pt-2">
         <Card className="w-full max-w-lg">
           <CardContent className="p-6 space-y-4">
-            <h1 className="text-2xl font-bold text-center">
+            {workspace && (
+              <div>
+                <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Workspace: <span className="text-muted-foreground">{workspace.name}</span></h1>
+              </div>
+            )}
+            <h2 className="text-xl font-semibold">
               Student Survey
-            </h1>
+            </h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {activeQuestions.map((q) => (
@@ -369,7 +391,7 @@ function SurveyContent() {
 
                       {/* Day selector */}
                       <select
-                        className={`w-full border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
+                        className={`w-auto border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
                         value={day}
                         onChange={(e) => {
                           setDay(e.target.value);
@@ -385,29 +407,29 @@ function SurveyContent() {
                         <option>Saturday</option>
                         <option>Sunday</option>
                       </select>
-
+                      &nbsp;&nbsp;
                       {/* Start time */}
                       <input
                         type="time"
-                        className={`w-full border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
+                        className={`w-auto border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
                         value={startTime}
                         onChange={(e) => {
                           setStartTime(e.target.value);
                           clearError("availability");
                         }}
                       />
-
+                      &nbsp;to&nbsp;
                       {/* End time */}
                       <input
                         type="time"
-                        className={`w-full border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
+                        className={`w-auto border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
                         value={endTime}
                         onChange={(e) => {
                           setEndTime(e.target.value);
                           clearError("availability");
                         }}
                       />
-
+                      &nbsp;&nbsp;
                       {/* Add button */}
                       <Button type="button" onClick={addAvailability}>
                         Add Availability
@@ -451,9 +473,15 @@ function SurveyContent() {
                   <p className="text-sm text-red-600">{submitError}</p>
                 )}
 
-                <Button type="submit" className="w-full" disabled={isSubmitting}>
-                  {isSubmitting ? "Submitting..." : "Submit Survey"}
-                </Button>
+                <div className="gap-3 text-center">
+                  <Button type="submit" className="w-medium" disabled={isSubmitting}>
+                    {isSubmitting ? "Submitting..." : "Submit Survey"}
+                  </Button>
+                  &nbsp;&nbsp;&nbsp;
+                  <Button type="button" variant="outline" onClick={() => router.back()}>
+                    Back
+                  </Button>
+                </div>
               </>
             </form>
           </CardContent>
