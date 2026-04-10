@@ -44,10 +44,17 @@ function buildAvailabilityGrid(availabilityAnswer) {
 }
 
 /**
- * Detect scheduling conflicts: two responses in the same workspace that
- * share NO common availability slot.
- * Returns array of { participantA, participantB } objects.
+ * Extract a plain string ID from a participantId that may be either
+ * a raw ObjectId or a populated User object.
  */
+function toIdString(participantId) {
+  if (!participantId) return "";
+  if (typeof participantId === "object" && participantId._id) {
+    return String(participantId._id);
+  }
+  return String(participantId);
+}
+
 function detectConflicts(responses) {
   const conflicts = [];
 
@@ -74,8 +81,10 @@ function detectConflicts(responses) {
 
       if (!hasOverlap) {
         conflicts.push({
-          participantA: a.participantId,
-          participantB: b.participantId,
+          participantA: toIdString(a.participantId),
+          participantAName: a.participantId?.name || null,
+          participantB: toIdString(b.participantId),
+          participantBName: b.participantId?.name || null,
         });
       }
     }
@@ -159,10 +168,10 @@ router.post("/", requireAuth, async (req, res) => {
   }
 });
 
-// GET /api/response?workspaceId=...
+// GET /api/response?workspaceId=... 
 // Fetch all survey responses for a workspace (used by instructor + availability grid).
 
-router.get("/", requireAuth, async (req, res) => {
+router.get("/", async (req, res) => {
   try {
     const { workspaceId } = req.query;
     if (!workspaceId) {
