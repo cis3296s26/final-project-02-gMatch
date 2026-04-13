@@ -81,7 +81,7 @@ export default function WorkspaceDetailPage() {
         headers: { 'Authorization': `Bearer ${session.token || ''}` },
       });
       if (res.ok) {
-        router.push("/organizer/dashboard");
+        router.push("/dashboard");
       }
     } catch (err) {
       console.error("Failed to delete workspace:", err);
