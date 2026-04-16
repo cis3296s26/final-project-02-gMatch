@@ -7,8 +7,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button"
 
-const API_URL =
-    process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
 
 export default function ParticipantWorkspacePage() {
     const { id } = useParams();
@@ -44,40 +43,43 @@ export default function ParticipantWorkspacePage() {
     if (!workspace) return <p>Loading...</p>;
 
     return (
-        <div className="p-6">
+        <div className="max-w-4xl mx-auto p-6 space-y-6">
+            {/* Back Button */}
             <Button
-                variant="outline"
-                className="mb-6 flex items-center gap-2 text-blue-600 hover:text-blue-700"
+                variant="ghost"
+                className="mb-2 flex items-center gap-2 text-blue-600 hover:text-blue-700"
                 onClick={() => router.push("/dashboard")}
             >
                 <ArrowLeft className="h-4 w-4" />
                 Back To Dashboard
             </Button>
 
-            <h1 className="text-2xl font-bold">{workspace.name}</h1>
-
-            <p className="mt-2 text-sm text-gray-400">
-                Participants: {workspace.participants?.length}
-            </p>
-
-        {/* Teams */}
-        <div className="mt-6">
-            <h2 className="text-lg font-semibold">Teams</h2>
-
-            {workspace.status === "published" ? (
-            <div className="mt-3 border p-4 rounded">
-                <p className="text-sm text-gray-400">
-                Teams have been published.
+            {/* WorkSpace Header Card */}
+            <div className="rounded-xl border bg-card p-6 shadow-sm">
+                <h1 className="text-3xl font-bold">{workspace.name}</h1>
+                <p className="mt-1 text-sm text-muted-foreground">
+                    {workspace.participants?.length} participants
                 </p>
             </div>
-            ) : (
-            <div className="mt-3 border p-4 rounded">
-                <p className="text-sm text-gray-400">
-                Teams not published yet
-                </p>
+
+            {/* Teams */}
+            <div className="rounded-xl border bg-card p-6 shadow-sm">
+                <h2 className="text-lg font-semibold mb-2">Teams</h2>
+
+                {workspace.status === "published" ? (
+                <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4">
+                    <p className="text-sm font-medium text-green-700">
+                        Teams have been published
+                    </p>
+                </div>
+                ) : (
+                <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <p className="text-sm text-muted-foreground">
+                        Teams not published yet
+                    </p>
+                </div>
+                )}
             </div>
-            )}
-        </div>
         </div>
     );
 }
