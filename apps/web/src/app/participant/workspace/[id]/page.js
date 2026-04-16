@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button"
 
 const API_URL =
     process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
@@ -43,17 +45,20 @@ export default function ParticipantWorkspacePage() {
 
     return (
         <div className="p-6">
-            <button
+            <Button
+                variant="outline"
+                className="mb-6 flex items-center gap-2 text-blue-600 hover:text-blue-700"
                 onClick={() => router.push("/dashboard")}
-                className="mb-4 text-sm text-blue-600 hover:underline"
             >
+                <ArrowLeft className="h-4 w-4" />
                 Back To Dashboard
-            </button>
-        <h1 className="text-2xl font-bold">{workspace.name}</h1>
+            </Button>
 
-        <p className="mt-2 text-sm text-gray-400">
-            Participants: {workspace.participants?.length}
-        </p>
+            <h1 className="text-2xl font-bold">{workspace.name}</h1>
+
+            <p className="mt-2 text-sm text-gray-400">
+                Participants: {workspace.participants?.length}
+            </p>
 
         {/* Teams */}
         <div className="mt-6">
