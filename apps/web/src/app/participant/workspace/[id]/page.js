@@ -22,9 +22,9 @@ export default function ParticipantWorkspacePage() {
         async function fetchWorkspace() {
             try {
                 const res = await fetch(`${API_URL}/api/workspaces/${id}`, {
-                headers: {
-                    Authorization: `Bearer ${session?.token}`,
-                },
+                    headers: {
+                        Authorization: `Bearer ${session?.token}`,
+                    },
                 });
 
                 const data = await res.json();
@@ -37,7 +37,7 @@ export default function ParticipantWorkspacePage() {
             }
         }
 
-        if (id && session) fetchWorkspace();
+        if (id) fetchWorkspace();
     }, [id]);
 
     if (!workspace) return <p>Loading...</p>;
@@ -45,9 +45,10 @@ export default function ParticipantWorkspacePage() {
     const userTeam = workspace.teams?.find(team =>
         team.members.some(member => member.name === session?.user?.name)
     );
-    
+
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-6">
+            
             {/* Back Button */}
             <Button
                 variant="ghost"
@@ -60,28 +61,37 @@ export default function ParticipantWorkspacePage() {
 
             {/* WorkSpace Header Card */}
             <div className="rounded-xl border bg-card p-6 shadow-sm">
-                <h1 className="text-3xl font-bold">{workspace.name}</h1>
-                <p className="mt-1 text-sm text-muted-foreground">
-                    {workspace.participants?.length} participants
-                </p>
-            </div>
-
-            {/* Teams */}
-            <div className="rounded-xl border bg-card p-6 shadow-sm">
-                <h2 className="text-lg font-semibold mb-2">Teams</h2>
-
+                <h2 className="text-lg font-semibold mb-4">Your Team</h2>
                 {workspace.status === "published" ? (
-                <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4">
-                    <p className="text-sm font-medium text-green-700">
-                        Teams have been published
-                    </p>
-                </div>
+                    userTeam ? (
+                        <div className="rounded-lg border p-4 bg-muted/30">
+                            <p className="font-semibold mb-2">Team</p>
+
+                            <ul className="space-y-1 text-sm">
+                                {userTeam.members.map((member, i) => (
+                                    <li key={i} className="flex items-center gap-2">
+                                        <span>{member.name}</span>
+
+                                        {member.name === session?.user?.name && (
+                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                                You
+                                            </span>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    ) : (
+                        <p className="text-sm text-muted-foreground">
+                            You are not assigned to a team yet.
+                        </p>
+                    )
                 ) : (
-                <div className="mt-4 rounded-lg border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-sm text-muted-foreground">
-                        Teams not published yet
-                    </p>
-                </div>
+                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                        <p className="text-sm text-muted-foreground">
+                            Teams not published yet
+                        </p>
+                    </div>
                 )}
             </div>
         </div>
