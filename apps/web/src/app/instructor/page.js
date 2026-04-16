@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useSession } from "next-auth/react";
 import StrategyFactory from "@/services/StrategyFactory";
 import Navbar from "@/components/Navbar";
+import TeamEditor from "@/components/TeamEditor";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import "./instructor.css";
@@ -817,17 +818,20 @@ export default function DashboardPage() {
               </p>
             )}
 
-            {teams.map((team, index) => (
-              <div key={index} className="team-box">
-                <strong>Group {index + 1}:</strong>{" "}
-                {team.map((s, studentIndex) => (
-                  <span key={`${s.name}-${studentIndex}`}>
-                    {s.name}
-                    {studentIndex < team.length - 1 ? " + " : ""}
-                  </span>
-                ))}
-              </div>
-            ))}
+            {teams.length > 0 && (
+              <TeamEditor
+                teams={teams}
+                onTeamsChange={(updatedTeams) => {
+                  setTeams(updatedTeams);
+                  // Persist the manual edits
+                  try {
+                    saveTeamsToBackendWorkspace(updatedTeams);
+                  } catch (_) {
+                    saveTeamsToLocalWorkspace(updatedTeams);
+                  }
+                }}
+              />
+            )}
           </div>
 
           <div className="instructor-card">
