@@ -37,11 +37,15 @@ export default function ParticipantWorkspacePage() {
             }
         }
 
-        if (id) fetchWorkspace();
+        if (id && session) fetchWorkspace();
     }, [id]);
 
     if (!workspace) return <p>Loading...</p>;
 
+    const userTeam = workspace.teams?.find(team =>
+        team.members.some(member => member.name === session?.user?.name)
+    );
+    
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-6">
             {/* Back Button */}
