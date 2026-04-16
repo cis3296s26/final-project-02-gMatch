@@ -172,11 +172,18 @@ export default function WorkspaceDetailPage() {
                   Create survey questions, view responses, and generate teams.
                 </p>
               </div>
-              <Link href={`/instructor?workspaceId=${id}`}>
-                <Button className="gap-2">
-                  Manage Survey & Teams →
-                </Button>
-              </Link>
+              <div className="flex flex-wrap gap-2">
+                <Link href={`/instructor/availability?workspaceId=${id}`}>
+                  <Button variant="outline" className="gap-2">
+                    View Availability Grid
+                  </Button>
+                </Link>
+                <Link href={`/instructor?workspaceId=${id}`}>
+                  <Button className="gap-2">
+                    Manage Survey & Teams →
+                  </Button>
+                </Link>
+              </div>
             </CardContent>
           </Card>
 
