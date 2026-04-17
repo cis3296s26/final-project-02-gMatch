@@ -80,3 +80,62 @@ See `.env.example` for all required variables:
 - `NEXT_PUBLIC_API_URL` — Express backend URL (default: http://localhost:5001)
 ```
 
+### Project Structure for .env files
+```
+gmatch/
+├── apps/
+│   ├── web/          # Next.js frontend (port 3000)
+|   |   └── .env      # local file
+│   └── server/       # Express backend  (port 5001)
+|       └── .env      # local file
+├── packages/
+│   └── types/        # Shared JSDoc-annotated type definitions
+├── turbo.json
+└── package.json
+```
+- The .env file should be under ./app/server/.env and ./apps/web/.env
+
+### Sample ./server/.env
+```
+# MongoDB
+MONGODB_URI=mongodb://localhost:27017/gmatch
+
+# NextAuth
+NEXTAUTH_SECRET=your-nextauth-secret-here
+NEXTAUTH_URL=http://localhost:3000
+
+# GitHub OAuth
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# API URL (used by Next.js frontend to call Express backend)
+NEXT_PUBLIC_API_URL=http://localhost:5001
+
+# Client URL (update to local port as needed)
+CLIENT_URL=http://localhost:3000
+```
+
+### Sample ./web/.env
+```
+# MongoDB
+MONGODB_URI=mongodb://localhost:27017/gmatch
+
+# NextAuth
+NEXTAUTH_SECRET=your-nextauth-secret-here
+NEXTAUTH_URL=http://localhost:3000
+
+# GitHub OAuth
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+
+# Google OAuth
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# API URL (used by Next.js frontend to call Express backend)
+NEXT_PUBLIC_API_URL=http://localhost:5001
+```
