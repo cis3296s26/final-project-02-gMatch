@@ -55,6 +55,13 @@ function toIdString(participantId) {
   return String(participantId);
 }
 
+function normalizeEmailList(list = []) {
+  return list
+    .filter(Boolean)
+    .map((email) => String(email).trim().toLowerCase())
+    .filter((email, index, arr) => arr.indexOf(email) === index);
+}
+
 function detectConflicts(responses) {
   const conflicts = [];
 
@@ -123,8 +130,8 @@ router.post("/", requireAuth, async (req, res) => {
         participantId: req.user.id,
         answers: Array.isArray(answers) ? answers : [],
         availabilityGrid,
-        whitelistEmails: whitelistEmails || [],
-        blacklistEmails: blacklistEmails || [],
+        whitelistEmails: normalizeEmailList(whitelistEmails),
+        blacklistEmails: normalizeEmailList(blacklistEmails),
       },
       { upsert: true, new: true }
     );
