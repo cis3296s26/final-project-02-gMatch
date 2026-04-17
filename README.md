@@ -49,6 +49,10 @@ gmatch/
 - Node.js 18+
 - MongoDB Atlas account (or local MongoDB)
 
+### Instructions on MongoDB and Auth
+- [Authentication Set Up](https://github.com/cis3296s26/final-project-02-gMatch/issues/41)
+- [MongoDB Local Installation Instructions](https://github.com/cis3296s26/final-project-02-gMatch/issues/30)
+
 ### Setup
 ```
 # 1. Install dependencies
