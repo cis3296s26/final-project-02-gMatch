@@ -2,7 +2,7 @@
 .instructor-page {
   min-height: 100vh;
   padding: 40px 20px;
-  background: #f8fafc;
+  background: var(--background);
 }
 
 .instructor-container {
@@ -13,12 +13,12 @@
 .instructor-title {
   font-size: 32px;
   margin-bottom: 24px;
-  color: #111827;
+  color: var(--foreground);
 }
 
 /* Cards */
 .instructor-card {
-  background: #ffffff;
+  background: var(--card);
   padding: 24px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -28,7 +28,7 @@
 .instructor-card h3 {
   margin-top: 0;
   margin-bottom: 16px;
-  color: #111827;
+  color: var(--foreground);
 }
 
 /* Form rows / fields */
@@ -46,7 +46,7 @@
   display: block;
   margin-bottom: 8px;
   font-weight: 700;
-  color: #374151;
+  color: var(--foreground);
 }
 
 .instructor-input,
@@ -54,10 +54,11 @@
   width: 100%;
   padding: 10px 12px;
   border-radius: 8px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   font-size: 14px;
   box-sizing: border-box;
-  background: #ffffff;
+  background: var(--background);
+  color: var(--foreground);
 }
 
 /* Buttons */
@@ -65,8 +66,8 @@
   padding: 12px 18px;
   border: none;
   border-radius: 8px;
-  background: #2563eb;
-  color: #ffffff;
+  background: var(--primary);
+  color: var(--primary-foreground);
   font-weight: 700;
   cursor: pointer;
   transition: opacity 0.2s ease;
@@ -76,10 +77,10 @@
 
 .instructor-button-secondary {
   padding: 12px 18px;
-  border: 1px solid #d1d5db;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  background: #ffffff;
-  color: #111827;
+  background: var(--card);
+  color: var(--foreground);
   font-weight: 700;
   cursor: pointer;
   margin-left: 10px;
@@ -89,8 +90,8 @@
   padding: 12px 18px;
   border: none;
   border-radius: 8px;
-  background: #111827;
-  color: #ffffff;
+  background: var(--foreground);
+  color: var(--background);
   font-weight: 700;
   cursor: pointer;
 }
@@ -100,7 +101,7 @@
   padding: 0;
   border: none;
   background: none;
-  color: #2563eb;
+  color: var(--primary);
   font-size: 14px;
   cursor: pointer;
   text-decoration: underline;
@@ -110,17 +111,17 @@
 .instructor-message {
   margin-top: 14px;
   margin-bottom: 0;
-  color: #2563eb;
+  color: var(--primary);
   font-weight: 700;
 }
 
-.instructor-muted  { color: #6b7280; margin: 0; }
-.instructor-text   { color: #374151; }
+.instructor-muted  { color: var(--muted-foreground); margin: 0; }
+.instructor-text   { color: var(--foreground); }
 
 .strategy-help {
   margin-top: 10px;
   margin-bottom: 0;
-  color: #6b7280;
+  color: var(--muted-foreground);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -136,39 +137,39 @@
 .workspace-tab {
   padding: 10px 14px;
   border-radius: 999px;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  color: #374151;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
   font-weight: 700;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 .workspace-tab.active {
-  border-color: #1d4ed8;
-  background: #dbeafe;
-  color: #1d4ed8;
+  border-color: var(--primary);
+  background: var(--accent);
+  color: var(--primary);
 }
 
 .workspace-details {
   padding: 16px;
   border-radius: 10px;
-  background: #f9fafb;
-  border: 1px solid #e5e7eb;
+  background: var(--muted);
+  border: 1px solid var(--border);
 }
-.workspace-details p              { margin: 0 0 8px; color: #374151; }
+.workspace-details p              { margin: 0 0 8px; color: var(--foreground); }
 .workspace-details p:last-child   { margin-bottom: 0; }
 
 /* Survey questions */
 .question-list          { padding-left: 20px; margin-bottom: 16px; }
-.question-list li       { margin-bottom: 10px; color: #374151; }
+.question-list li       { margin-bottom: 10px; color: var(--foreground); }
 
 .remove-button {
   margin-left: 10px;
   padding: 4px 10px;
   border: none;
   border-radius: 6px;
-  background: #fee2e2;
-  color: #b91c1c;
+  background: var(--destructive);
+  color: var(--primary-foreground);
   cursor: pointer;
 }
 
@@ -182,12 +183,12 @@
   margin-bottom: 10px;
   padding: 12px;
   border-radius: 8px;
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: var(--accent);
+  border: 1px solid var(--border);
 }
 
 /* Config list */
-.config-list          { padding-left: 20px; margin: 0; color: #4b5563; }
+.config-list          { padding-left: 20px; margin: 0; color: var(--muted-foreground); }
 .config-list li       { margin-bottom: 6px; }
 
 /* Drag-and-drop team editor */
@@ -352,17 +353,17 @@
   gap: 8px;
   padding: 10px 18px;
   border-radius: 8px;
-  background: #f0fdf4;
-  border: 1px solid #86efac;
-  color: #15803d;
+  background: var(--accent);
+  border: 1px solid var(--border);
+  color: var(--foreground);
   font-weight: 700;
   font-size: 14px;
   text-decoration: none !important;
   transition: background 0.15s, border-color 0.15s;
 }
 .availability-grid-button:hover {
-  background: #dcfce7;
-  border-color: #4ade80;
+  background: var(--muted);
+  border-color: var(--primary);
 }
 
 /* ── Availability grid page ───────────────────────────────────── */
@@ -378,18 +379,18 @@
 .avail-workspace-tab {
   padding: 6px 16px;
   border-radius: 999px;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  color: #374151;
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 .avail-workspace-tab.active {
-  border-color: #2563eb;
-  background: #eff6ff;
-  color: #1d4ed8;
+  border-color: var(--primary);
+  background: var(--accent);
+  color: var(--primary);
 }
 
 /* Conflict / ok banners */
@@ -423,14 +424,14 @@
 .avail-table-wrap {
   overflow-x: auto;
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 
 .avail-day-header {
-  background: #f9fafb;
+  background: var(--muted);
   font-weight: 700;
   text-align: center;
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid var(--border);
   font-size: 13px;
 }
 
@@ -440,19 +441,19 @@
   white-space: nowrap;
   padding: 6px 8px;
 }
-.avail-time-header.last-in-day { border-right: 1px solid #e5e7eb; }
+.avail-time-header.last-in-day { border-right: 1px solid var(--border); }
 
 .avail-coverage-high   { color: #15803d; font-size: 10px; }
 .avail-coverage-mid    { color: #b45309; font-size: 10px; }
-.avail-coverage-low    { color: #9ca3af; font-size: 10px; }
+.avail-coverage-low    { color: var(--muted-foreground); font-size: 10px; }
 
 .avail-cell-yes  { background: #f0fdf4; text-align: center; }
 .avail-cell-no   { text-align: center; }
 .avail-cell-yes.last-in-day,
-.avail-cell-no.last-in-day  { border-right: 1px solid #e5e7eb; }
+.avail-cell-no.last-in-day  { border-right: 1px solid var(--border); }
 
 .avail-check  { color: #16a34a; font-size: 16px; }
-.avail-dash   { color: #d1d5db; font-size: 12px; }
+.avail-dash   { color: var(--muted-foreground); font-size: 12px; }
 
 /* Skill chips inside student name cell */
 .avail-skill-chips {
@@ -464,8 +465,8 @@
 .avail-skill-chip {
   padding: 1px 7px;
   border-radius: 999px;
-  background: #eff6ff;
-  color: #1d4ed8;
+  background: var(--accent);
+  color: var(--primary);
   font-size: 10px;
   font-weight: 500;
 }
@@ -491,7 +492,7 @@
   flex-wrap: wrap;
   gap: 16px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--muted-foreground);
   align-items: center;
 }
 .avail-legend-dot {
