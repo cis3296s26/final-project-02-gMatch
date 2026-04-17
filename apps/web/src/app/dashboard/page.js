@@ -377,7 +377,7 @@ export default function UnifiedDashboard() {
             ) : (
               <div className="flex flex-col gap-3">
                 {participantWs.map((ws) => (
-                  <Link key={ws._id} href={`/participant/survey?workspaceId=${ws._id}`}>
+                  <Link key={ws._id} href={`/participant/workspace/${ws._id}`}>
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 sm:p-5 rounded-2xl border border-border/50 bg-card shadow-sm transition-all hover:bg-muted/30 hover:border-primary/30 group cursor-pointer">
                       <div className="flex items-center gap-4 mb-4 sm:mb-0">
                         <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
@@ -408,9 +408,15 @@ export default function UnifiedDashboard() {
                         >
                           Leave
                         </button>
-                        <div className="hidden sm:flex px-4 py-2 items-center gap-2 text-sm font-bold text-primary bg-primary/10 rounded-xl group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault(); // stop card click
+                            router.push(`/participant/survey?workspaceId=${ws._id}`);
+                          }}
+                          className="hidden sm:flex px-4 py-2 items-center gap-2 text-sm font-bold text-primary bg-primary/10 rounded-xl hover:bg-primary hover:text-primary-foreground transition-all"
+                        >
                           Take Survey <ArrowRight className="w-4 h-4 ml-1" />
-                        </div>
+                        </button>
                       </div>
                     </div>
                   </Link>
