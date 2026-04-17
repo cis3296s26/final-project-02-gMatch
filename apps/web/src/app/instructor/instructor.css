@@ -365,3 +365,246 @@
   .top-actions-row         { margin-bottom: 20px; }
   .availability-grid-button { text-decoration: none; }
 }
+
+/* TeamEditor – drag-and-drop manual team editor */
+
+.team-editor {
+  position: relative;
+}
+
+/* Confirmation overlay */
+.te-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.te-dialog {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 28px 32px;
+  max-width: 420px;
+  width: 90%;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.te-dialog-msg {
+  margin: 0 0 22px;
+  font-size: 15px;
+  color: #111827;
+  line-height: 1.55;
+}
+
+.te-dialog-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.te-btn-danger {
+  padding: 10px 22px;
+  border: none;
+  border-radius: 8px;
+  background: #dc2626;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.te-btn-danger:hover { background: #b91c1c; }
+
+.te-btn-cancel {
+  padding: 10px 22px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #374151;
+  font-weight: 700;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+.te-btn-cancel:hover { background: #f3f4f6; }
+
+/* Team grid */
+.te-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.te-team-col {
+  flex: 1 1 220px;
+  min-width: 200px;
+  background: #f8fafc;
+  border: 2px dashed #bfdbfe;
+  border-radius: 12px;
+  padding: 14px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.te-team-col:hover {
+  border-color: #3b82f6;
+  background: #eff6ff;
+}
+
+/* Unassigned pool */
+.te-unassigned-pool {
+  background: #fefce8;
+  border: 2px dashed #fcd34d;
+  border-radius: 12px;
+  padding: 14px;
+  transition: border-color 0.15s, background 0.15s;
+  margin-bottom: 10px;
+}
+.te-unassigned-pool:hover {
+  border-color: #f59e0b;
+  background: #fffbeb;
+}
+
+/* Team header row */
+.te-team-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.te-team-label {
+  font-weight: 700;
+  font-size: 13px;
+  color: #1e3a8a;
+  flex: 1;
+}
+
+.te-unassigned-pool .te-team-label {
+  color: #92400e;
+}
+
+.te-team-count {
+  font-size: 11px;
+  color: #6b7280;
+  background: #e5e7eb;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+.te-unassign-all {
+  padding: 2px 8px;
+  border: none;
+  border-radius: 6px;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.te-unassign-all:hover { background: #fecaca; }
+
+/* Drop zone */
+.te-drop-zone {
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.te-drop-hint {
+  font-size: 12px;
+  color: #9ca3af;
+  text-align: center;
+  padding: 10px 0;
+  user-select: none;
+}
+
+.te-unassigned-zone {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: flex-start;
+}
+
+/* Student chip */
+.te-student-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  cursor: grab;
+  user-select: none;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+.te-student-chip:active  { cursor: grabbing; }
+.te-student-chip:hover   { border-color: #3b82f6; box-shadow: 0 2px 8px rgba(59,130,246,0.18); }
+
+.te-student-chip--unassigned {
+  border-color: #fde68a;
+  background: #fffde7;
+}
+.te-student-chip--unassigned:hover { border-color: #f59e0b; }
+
+.te-drag-handle {
+  font-size: 16px;
+  color: #9ca3af;
+  line-height: 1;
+  cursor: grab;
+  flex-shrink: 0;
+}
+
+.te-student-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.te-remove-btn {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+  border: none;
+  border-radius: 50%;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+.te-remove-btn:hover { background: #fecaca; }
+
+.te-remove-btn--danger {
+  background: #fef3c7;
+  color: #92400e;
+}
+.te-remove-btn--danger:hover { background: #fde68a; }
+
+/* Help text */
+.te-help-text {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .te-grid { flex-direction: column; }
+  .te-team-col { min-width: unset; }
+}
