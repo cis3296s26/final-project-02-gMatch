@@ -3,6 +3,9 @@ const Workspace = require("../models/Workspace");
 const router = express.Router();
 const { requireAuth } = require("../middleware/auth");
 const mongoose = require("mongoose");
+const { generateTeams } = require("../algorithm/index");
+const Response = require("../models/Response");
+const Team = require("../models/Team");
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
@@ -276,6 +279,72 @@ router.put("/:workspaceId/teams", requireAuth, async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       message: "Failed to save teams",
+      error: error.message
+    });
+  }
+});
+
+// POST generate mathematical teams
+router.post("/:id/generate", requireAuth, async (req, res) => {
+  try {
+    const workspaceId = req.params.id;
+    const { weights } = req.body; // e.g. { schedule: 0.6, diversity: 0.3, experience: 0.1 }
+
+    const workspace = await Workspace.findById(workspaceId);
+    if (!workspace) {
+      return res.status(404).json({ message: "Workspace not found" });
+    }
+
+    if (!workspace.organizerId.equals(new mongoose.Types.ObjectId(req.user.id))) {
+      return res.status(403).json({ message: "Only the organizer can generate teams." });
+    }
+
+    // Fetch all survey responses dynamically linked to this workspace
+    const responses = await Response.find({ workspaceId }).populate("participantId", "name email");
+
+    if (!responses || responses.length < 2) {
+      return res.status(400).json({ message: "Not enough participant responses to generate teams." });
+    }
+
+    // Mathematical Engine Call
+    const bestTeamsFormat = generateTeams(responses, workspace.teamSize, weights);
+
+    // Wipe old Database Teams for this workspace
+    await Team.deleteMany({ workspaceId });
+
+    // Format new DB models
+    const dbTeams = bestTeamsFormat.map(t => ({
+      workspaceId,
+      memberIds: t.members,
+      chatHistory: []
+    }));
+
+    await Team.insertMany(dbTeams);
+
+    // Denormalize directly onto Workspace for easy frontend viewing
+    const denormalizedTeams = bestTeamsFormat.map(t => {
+      const populatedMembers = t.members.map(mId => {
+        const fullResponse = responses.find(r => r.participantId._id.equals(mId));
+        return {
+          name: fullResponse.participantId.name,
+          availability: Object.keys(fullResponse.availabilityGrid || {}),
+          skills: fullResponse.answers?.find(a => a.questionId === "skills")?.value || []
+        };
+      });
+      return { members: populatedMembers };
+    });
+
+    workspace.teams = denormalizedTeams;
+    await workspace.save();
+
+    return res.status(200).json({
+      message: "Teams successfully generated",
+      teams: workspace.teams
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to generate teams",
       error: error.message
     });
   }
