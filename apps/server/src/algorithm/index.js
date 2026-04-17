@@ -1,6 +1,11 @@
 // gMatch Mathematical Team Matching Engine
 // Uses Randomized Search / Simulated Annealing with Constraint Satisfaction
 
+
+function normalizeEmail(email){
+  return String(email || "").trim().toLowerCase();
+}
+
 function calculateTeamScore(team, weights) {
   let score = 0;
 
@@ -11,13 +16,14 @@ function calculateTeamScore(team, weights) {
   
   for (let i = 0; i < team.length; i++) {
     const member = team[i];
-    const memberEmail = member.participantId?.email;
+    const memberEmail = normalizeEmail(member.participantId?.email);
 
     // Check Blacklist
     if (member.blacklistEmails && member.blacklistEmails.length > 0) {
       for (const targetEmail of member.blacklistEmails) {
-        if (!targetEmail) continue;
-        const targetInTeam = team.some(m => m.participantId?.email === targetEmail);
+        const normalizedTargetEmail = normalizeEmail(targetEmail);
+        if (!normalizedTargetEmail) continue;
+        const targetInTeam = team.some(m => normalizeEmail(m.participantId?.email) === normalizedTargetEmail);
         if (targetInTeam) hardPenalty -= 10000; 
       }
     }
@@ -25,8 +31,9 @@ function calculateTeamScore(team, weights) {
     // Check Whitelist (We penalize if a whitelisted peer is NOT in the team, but ONLY if that peer actually filled out the survey!)
     if (member.whitelistEmails && member.whitelistEmails.length > 0) {
       for (const targetEmail of member.whitelistEmails) {
-        if (!targetEmail) continue;
-        const targetInTeam = team.some(m => m.participantId?.email === targetEmail);
+        const normalizedTargetEmail = normalizeEmail(targetEmail);
+        if (!normalizedTargetEmail) continue;
+        const targetInTeam = team.some(m => normalizeEmail(m.participantId?.email) === normalizedTargetEmail);
         if (!targetInTeam) hardPenalty -= 1000;
       }
     }
