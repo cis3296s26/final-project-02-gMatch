@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import StrategyFactory from "@/services/StrategyFactory";
 import Navbar from "@/components/Navbar";
-import TeamEditor from "@/components/TeamEditor";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import "./instructor.css";
@@ -23,6 +22,14 @@ export default function DashboardPage() {
   const [lastGeneratedStrategy, setLastGeneratedStrategy] = useState("");
   const [statusMessage, setStatusMessage] = useState("");
   const [showStrategyHelp, setShowStrategyHelp] = useState(false);
+
+  // Drag-and-drop state
+  const [draggedStudent, setDraggedStudent] = useState(null); // { student, fromTeam }
+  const [dragOverTarget, setDragOverTarget] = useState(null); // teamIndex or 'unassigned'
+  const [unassignedStudents, setUnassignedStudents] = useState([]);
+
+  // Confirmation dialog state
+  const [confirmDialog, setConfirmDialog] = useState(null); // { type, student, fromTeam, message, onConfirm }
 
   const [questions, setQuestions] = useState([
     "What days are you available?",
@@ -396,6 +403,118 @@ export default function DashboardPage() {
     return true;
   };
 
+  // ── Drag-and-Drop handlers ────────────────────────────────────────
+  const handleDragStart = (e, student, fromTeam) => {
+    setDraggedStudent({ student, fromTeam });
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e, targetTeam) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    setDragOverTarget(targetTeam);
+  };
+
+  const handleDragLeave = () => {
+    setDragOverTarget(null);
+  };
+
+  const handleDropOnTeam = (e, toTeamIndex) => {
+    e.preventDefault();
+    setDragOverTarget(null);
+    if (!draggedStudent) return;
+
+    const { student, fromTeam } = draggedStudent;
+
+    // Drop onto the same team → no-op
+    if (fromTeam === toTeamIndex) {
+      setDraggedStudent(null);
+      return;
+    }
+
+    const newTeams = teams.map((t) => [...t]);
+    let newUnassigned = [...unassignedStudents];
+
+    // Remove from source
+    if (fromTeam === "unassigned") {
+      newUnassigned = newUnassigned.filter((s) => s.name !== student.name);
+    } else {
+      newTeams[fromTeam] = newTeams[fromTeam].filter((s) => s.name !== student.name);
+    }
+
+    // Add to destination team
+    newTeams[toTeamIndex] = [...newTeams[toTeamIndex], student];
+
+    setTeams(newTeams);
+    setUnassignedStudents(newUnassigned);
+    setDraggedStudent(null);
+    setStatusMessage("Team updated. Remember to save changes.");
+  };
+
+  const handleDropOnUnassigned = (e) => {
+    e.preventDefault();
+    setDragOverTarget(null);
+    if (!draggedStudent) return;
+
+    const { student, fromTeam } = draggedStudent;
+
+    if (fromTeam === "unassigned") {
+      setDraggedStudent(null);
+      return;
+    }
+
+    const newTeams = teams.map((t) => [...t]);
+    newTeams[fromTeam] = newTeams[fromTeam].filter((s) => s.name !== student.name);
+
+    setTeams(newTeams);
+    setUnassignedStudents((prev) => [...prev, student]);
+    setDraggedStudent(null);
+    setStatusMessage("Student moved to unassigned. Remember to save changes.");
+  };
+
+  const handleDragEnd = () => {
+    setDraggedStudent(null);
+    setDragOverTarget(null);
+  };
+
+  // ── Confirmation helpers ─────────────────────────────────────────
+  const askConfirmRemoveFromTeam = (student, teamIndex) => {
+    setConfirmDialog({
+      message: `Remove "${student.name}" from Group ${teamIndex + 1} and make them unassigned?`,
+      onConfirm: () => {
+        const newTeams = teams.map((t) => [...t]);
+        newTeams[teamIndex] = newTeams[teamIndex].filter((s) => s.name !== student.name);
+        setTeams(newTeams);
+        setUnassignedStudents((prev) => [...prev, student]);
+        setConfirmDialog(null);
+        setStatusMessage("Student moved to unassigned. Remember to save changes.");
+      },
+    });
+  };
+
+  const askConfirmRemoveUnassigned = (student) => {
+    setConfirmDialog({
+      message: `Permanently remove "${student.name}" from the unassigned pool?`,
+      onConfirm: () => {
+        setUnassignedStudents((prev) => prev.filter((s) => s.name !== student.name));
+        setConfirmDialog(null);
+        setStatusMessage("Student removed. Remember to save changes.");
+      },
+    });
+  };
+
+  // Save manually adjusted teams
+  const saveAdjustedTeams = async () => {
+    const adjustedTeams = teams.filter((t) => t.length > 0);
+    try {
+      await saveTeamsToBackendWorkspace(adjustedTeams);
+      setStatusMessage(`Adjusted teams saved to "${activeWorkspace.name}".`);
+    } catch (_err) {
+      saveTeamsToLocalWorkspace(adjustedTeams);
+      setStatusMessage(`Adjusted teams saved locally to "${activeWorkspace.name}".`);
+    }
+  };
+
   const generateTeams = async () => {
     if (!activeWorkspace) {
       setStatusMessage("Please create and select a workspace first.");
@@ -421,6 +540,7 @@ export default function DashboardPage() {
     setTeams(generatedTeams);
     setHasGenerated(true);
     setLastGeneratedStrategy(strategy);
+    setUnassignedStudents([]);
 
     try {
       await saveTeamsToBackendWorkspace(generatedTeams);
@@ -819,20 +939,115 @@ export default function DashboardPage() {
             )}
 
             {teams.length > 0 && (
-              <TeamEditor
-                teams={teams}
-                onTeamsChange={(updatedTeams) => {
-                  setTeams(updatedTeams);
-                  // Persist the manual edits
-                  try {
-                    saveTeamsToBackendWorkspace(updatedTeams);
-                  } catch (_) {
-                    saveTeamsToLocalWorkspace(updatedTeams);
-                  }
-                }}
-              />
+              <>
+                <p className="instructor-muted" style={{ marginBottom: 16, fontSize: 13 }}>
+                  Drag student names between groups, or use the × button to make a student unassigned.
+                </p>
+
+                <div className="team-dnd-grid">
+                  {teams.map((team, index) => (
+                    <div
+                      key={index}
+                      className={`team-box team-drop-zone${dragOverTarget === index ? " drop-target" : ""}`}
+                      onDragOver={(e) => handleDragOver(e, index)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDropOnTeam(e, index)}
+                    >
+                      <div className="team-box-header">
+                        <strong>Group {index + 1}</strong>
+                        <span className="team-count">{team.length} student{team.length !== 1 ? "s" : ""}</span>
+                      </div>
+                      <div className="team-members-list">
+                        {team.length === 0 && (
+                          <span className="team-empty-hint">Drop a student here</span>
+                        )}
+                        {team.map((s, si) => (
+                          <div
+                            key={`${s.name}-${si}`}
+                            className={`student-chip${draggedStudent?.student?.name === s.name && draggedStudent?.fromTeam === index ? " dragging" : ""}`}
+                            draggable
+                            onDragStart={(e) => handleDragStart(e, s, index)}
+                            onDragEnd={handleDragEnd}
+                          >
+                            <span className="student-chip-name">{s.name}</span>
+                            <button
+                              className="chip-remove-btn"
+                              title="Make unassigned"
+                              onClick={() => askConfirmRemoveFromTeam(s, index)}
+                            >×</button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Unassigned pool */}
+                <div
+                  className={`unassigned-pool${dragOverTarget === "unassigned" ? " drop-target" : ""}`}
+                  onDragOver={(e) => handleDragOver(e, "unassigned")}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDropOnUnassigned}
+                >
+                  <div className="team-box-header">
+                    <strong>Unassigned Students</strong>
+                    <span className="team-count">{unassignedStudents.length}</span>
+                  </div>
+                  {unassignedStudents.length === 0 ? (
+                    <span className="team-empty-hint">Drag students here to unassign them</span>
+                  ) : (
+                    <div className="team-members-list">
+                      {unassignedStudents.map((s, i) => (
+                        <div
+                          key={`unassigned-${s.name}-${i}`}
+                          className={`student-chip unassigned-chip${draggedStudent?.student?.name === s.name && draggedStudent?.fromTeam === "unassigned" ? " dragging" : ""}`}
+                          draggable
+                          onDragStart={(e) => handleDragStart(e, s, "unassigned")}
+                          onDragEnd={handleDragEnd}
+                        >
+                          <span className="student-chip-name">{s.name}</span>
+                          <button
+                            className="chip-remove-btn"
+                            title="Remove permanently"
+                            onClick={() => askConfirmRemoveUnassigned(s)}
+                          >×</button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ marginTop: 16 }}>
+                  <button className="instructor-button" onClick={saveAdjustedTeams}>
+                    Save Adjustments
+                  </button>
+                </div>
+              </>
             )}
           </div>
+
+          {/* Confirmation Dialog */}
+          {confirmDialog && (
+            <div className="confirm-overlay">
+              <div className="confirm-modal">
+                <p className="confirm-message">{confirmDialog.message}</p>
+                <div className="confirm-actions">
+                  <button
+                    className="instructor-button-dark"
+                    onClick={confirmDialog.onConfirm}
+                  >
+                    Yes, confirm
+                  </button>
+                  <button
+                    className="instructor-button-secondary"
+                    onClick={() => setConfirmDialog(null)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="instructor-card">
             <h3>Current Configuration</h3>
