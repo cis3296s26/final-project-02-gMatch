@@ -48,7 +48,7 @@ export default function ParticipantWorkspacePage() {
 
     return (
         <div className="max-w-4xl mx-auto p-6 space-y-6">
-            
+
             {/* Back Button */}
             <Button
                 variant="ghost"
@@ -69,13 +69,21 @@ export default function ParticipantWorkspacePage() {
 
                             <ul className="space-y-1 text-sm">
                                 {userTeam.members.map((member, i) => (
-                                    <li key={i} className="flex items-center gap-2">
-                                        <span>{member.name}</span>
+                                    <li key={i} className="flex flex-col">
+                                        <div className="flex items-center gap-2">
+                                            <span>{member.name}</span>
 
-                                        {member.name === session?.user?.name && (
-                                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
-                                                You
-                                            </span>
+                                            {member.name === session?.user?.name && (
+                                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                                    You
+                                                </span>
+                                            )}
+                                        </div>
+
+                                        {member.availability?.length > 0 && (
+                                            <p className="text-xs text-muted-foreground ml-1">
+                                                {member.availability.join(", ")}
+                                            </p>
                                         )}
                                     </li>
                                 ))}
