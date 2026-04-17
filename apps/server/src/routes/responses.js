@@ -130,8 +130,8 @@ router.post("/", requireAuth, async (req, res) => {
         participantId: req.user.id,
         answers: Array.isArray(answers) ? answers : [],
         availabilityGrid,
-        whitelistEmails: whitelistEmails || [],
-        blacklistEmails: blacklistEmails || [],
+        whitelistEmails: normalizeEmailList(whitelistEmails),
+        blacklistEmails: normalizeEmailList(blacklistEmails),
       },
       { upsert: true, new: true }
     );
