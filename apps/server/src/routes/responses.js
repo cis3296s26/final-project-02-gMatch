@@ -55,6 +55,13 @@ function toIdString(participantId) {
   return String(participantId);
 }
 
+function normalizeEmailList(list = []) {
+  return list
+    .filter(Boolean)
+    .map((email) => String(email).trim().toLowerCase())
+    .filter((email, index, arr) => arr.indexOf(email) === index);
+}
+
 function detectConflicts(responses) {
   const conflicts = [];
 

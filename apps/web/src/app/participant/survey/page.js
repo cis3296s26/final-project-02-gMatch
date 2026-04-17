@@ -27,8 +27,6 @@ function SurveyContent() {
     // Whitelist / Blacklist
     const [whitelistEmails, setWhitelistEmails] = useState([]);
     const [blacklistEmails, setBlacklistEmails] = useState([]);
-    const [whitelistQuery, setWhitelistQuery] = useState("");
-    const [blacklistQuery, setBlacklistQuery] = useState("");
     const [submitted, setSubmitted] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState("");
@@ -53,10 +51,10 @@ function SurveyContent() {
         base.push({ id: "availability", label: "Availability", type: "availability-grid" });
       }
       if (!formQuestions.some((q) => q.id === "whitelist")) {
-        base.push({ id: "whitelist", label: "Preferred Teammates", type: "participant-autocomplete", listType: "whitelist" });
+        base.push({ id: "whitelist", label: "Preferred Teammates", type: "participant-list", listType: "whitelist" });
       }
       if (!formQuestions.some((q) => q.id === "blacklist")) {
-        base.push({ id: "blacklist", label: "Avoid Working With", type: "participant-autocomplete", listType: "blacklist" });
+        base.push({ id: "blacklist", label: "Avoid Working With", type: "participant-list", listType: "blacklist" });
       }
       return [...base, ...formQuestions];
     })();
@@ -239,8 +237,8 @@ function SurveyContent() {
         workspaceId,
         participantId: session?.user?.id,
         answers,
-        whitelistEmails,
-        blacklistEmails,
+        whitelistEmails: whitelistEmails.map((email) => email.trim().toLowerCase()),
+        blacklistEmails: blacklistEmails.map((email) => email.trim().toLowerCase()),
       };
 
       try {
@@ -365,30 +363,21 @@ function SurveyContent() {
       return `${formattedHour}:${minute} ${ampm}`;
     }
 
-    function handleSelectParticipant(type, email) {
+    function handleAddParticipantEmail(type, rawEmail) {
+      const email = rawEmail.trim().toLowerCase();
+      if (!email) return;
+
       if (type === "whitelist" && !whitelistEmails.includes(email) && !blacklistEmails.includes(email)) {
         setWhitelistEmails([...whitelistEmails, email]);
       }
       if (type === "blacklist" && !blacklistEmails.includes(email) && !whitelistEmails.includes(email)) {
         setBlacklistEmails([...blacklistEmails, email]);
       }
-      if (type === "whitelist") setWhitelistQuery("");
-      if (type === "blacklist") setBlacklistQuery("");
     }
 
     function handleRemoveParticipant(type, email) {
       if (type === "whitelist") setWhitelistEmails(whitelistEmails.filter((e) => e !== email));
       if (type === "blacklist") setBlacklistEmails(blacklistEmails.filter((e) => e !== email));
-    }
-
-    function getFilteredParticipants(query) {
-      if (!workspace?.participants || !query) return [];
-      return workspace.participants.filter(
-        (p) =>
-          p.email !== session?.user?.email &&
-          (p.name?.toLowerCase().includes(query.toLowerCase()) ||
-            p.email?.toLowerCase().includes(query.toLowerCase()))
-      );
     }
 
     if (isLoadingForm) {
@@ -570,61 +559,41 @@ function SurveyContent() {
                     </div>
                   )}
 
-                  {/* WHITELIST / BLACKLIST AUTOCOMPLETE */}
-                  {q.type === "participant-autocomplete" && (
+                  {/* WHITELIST / BLACKLIST PARTICIPANT LIST */}
+                  {q.type === "participant-list" && (
                     <div className="relative w-full border rounded-lg p-2 transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 border-input bg-background flex flex-col gap-2">
-                       <div className="flex flex-wrap gap-2">
-                         { (q.listType === "whitelist" ? whitelistEmails : blacklistEmails).map((email, index) => {
-                           const targetP = workspace?.participants?.find(p => p.email === email);
-                           const display = targetP ? `${targetP.name} <${targetP.email}>` : email;
-                           return (
-                             <div
-                               key={index}
-                               className={`text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1.5 ${q.listType === "whitelist" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
-                             >
-                               {display}
-                               <button
-                                 type="button"
-                                 className="hover:opacity-75 transition-colors focus:outline-none"
-                                 onClick={() => handleRemoveParticipant(q.listType, email)}
-                               >
-                                 ✕
-                               </button>
-                             </div>
-                           )
-                         })}
-                       </div>
+                      <div className="flex flex-wrap gap-2">
+                        {(q.listType === "whitelist" ? whitelistEmails : blacklistEmails).map((email, index) => (
+                          <div
+                            key={index}
+                            className={`text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1.5 ${q.listType === "whitelist" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700"}`}
+                          >
+                            {email}
+                            <button
+                              type="button"
+                              className="hover:opacity-75 transition-colors focus:outline-none"
+                              onClick={() => handleRemoveParticipant(q.listType, email)}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
 
-                       <input
-                         className="flex-1 bg-transparent border-none outline-none min-w-[150px] text-sm py-1 placeholder:text-muted-foreground w-full"
-                         placeholder="Type a student name or email to search..."
-                         value={q.listType === "whitelist" ? whitelistQuery : blacklistQuery}
-                         onChange={(e) => {
-                           if (q.listType === "whitelist") setWhitelistQuery(e.target.value);
-                           if (q.listType === "blacklist") setBlacklistQuery(e.target.value);
-                         }}
-                       />
-
-                       {/* Autocomplete Dropdown */}
-                       {(q.listType === "whitelist" ? whitelistQuery : blacklistQuery).length > 0 && (
-                         <div className="absolute top-100 left-0 mt-1 w-full bg-card border border-border rounded-md shadow-lg z-50 max-h-48 overflow-y-auto">
-                           {getFilteredParticipants(q.listType === "whitelist" ? whitelistQuery : blacklistQuery).length === 0 ? (
-                             <div className="p-3 text-sm text-muted-foreground">No matching students found.</div>
-                           ) : (
-                             getFilteredParticipants(q.listType === "whitelist" ? whitelistQuery : blacklistQuery).map(p => (
-                               <button
-                                 key={p._id}
-                                 type="button"
-                                 className="w-full text-left px-4 py-2 text-sm hover:bg-muted focus:bg-muted outline-none transition-colors break-all flex flex-col gap-1"
-                                 onClick={() => handleSelectParticipant(q.listType, p.email)}
-                               >
-                                 <span className="font-medium text-foreground">{p.name || "Unknown"}</span>
-                                 <span className="text-xs text-muted-foreground">{p.email}</span>
-                               </button>
-                             ))
-                           )}
-                         </div>
-                       )}
+                      <input
+                        className="flex-1 bg-transparent border-none outline-none min-w-[150px] text-sm py-1 placeholder:text-muted-foreground w-full"
+                        placeholder="Enter a student email and press Enter"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === ",") {
+                            e.preventDefault();
+                            const cleaned = e.currentTarget.value.replace(/,$/, "").trim();
+                            if (cleaned) {
+                              handleAddParticipantEmail(q.listType, cleaned);
+                              e.currentTarget.value = "";
+                            }
+                          }
+                        }}
+                      />
                     </div>
                   )}
 
