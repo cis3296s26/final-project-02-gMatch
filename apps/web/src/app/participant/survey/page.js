@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, Suspense } from "react";
+import { useEffect, useState, Suspense, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,13 @@ function SurveyContent() {
     const [formQuestions, setFormQuestions] = useState([]);
     const [isLoadingForm, setIsLoadingForm] = useState(true);
 
+    // Skill autocomplete
+    const [skillSuggestions, setSkillSuggestions] = useState([]);
+    const [showSkillDropdown, setShowSkillDropdown] = useState(false);
+    const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
+    const skillInputRef = useRef(null);
+    const skillDropdownRef = useRef(null);
+
     const activeQuestions = (() => {
       const base = [];
       if (!formQuestions.some((q) => q.type === "skill-tag" || q.id === "skills")) {
@@ -53,6 +60,83 @@ function SurveyContent() {
       }
       return [...base, ...formQuestions];
     })();
+
+    // Fetch all previously used skills across workspace responses
+    useEffect(() => {
+      if (!workspaceId || !session?.token) return;
+      async function fetchPreviousSkills() {
+        try {
+          const res = await fetch(`${API_URL}/api/response?workspaceId=${workspaceId}`, {
+            headers: { Authorization: `Bearer ${session.token}` },
+            credentials: "include",
+          });
+          if (!res.ok) return;
+          const data = await res.json();
+          const allSkills = new Set();
+          (data.responses || []).forEach((r) => {
+            const skillAnswer = r.answers?.find((a) => a.questionId === "skills");
+            if (Array.isArray(skillAnswer?.value)) {
+              skillAnswer.value.forEach((s) => {
+                if (typeof s === "string" && s.trim()) allSkills.add(s.trim());
+              });
+            }
+          });
+          setSkillSuggestions([...allSkills].sort((a, b) => a.localeCompare(b)));
+        } catch (err) {
+          console.error("Failed to fetch previous skills:", err);
+        }
+      }
+      fetchPreviousSkills();
+    }, [workspaceId, session]);
+
+    // Close skill dropdown when clicking outside
+    useEffect(() => {
+      function handleClickOutside(e) {
+        if (
+          skillInputRef.current && !skillInputRef.current.contains(e.target) &&
+          skillDropdownRef.current && !skillDropdownRef.current.contains(e.target)
+        ) {
+          setShowSkillDropdown(false);
+          setActiveSuggestionIndex(-1);
+        }
+      }
+      document.addEventListener("mousedown", handleClickOutside);
+      return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    function getFilteredSkillSuggestions() {
+      const query = skillInput.trim().toLowerCase();
+      const alreadyAdded = new Set(skills.map((s) => s.toLowerCase()));
+      if (!query) {
+        // Show all unused previous skills when input is focused but empty
+        return skillSuggestions.filter((s) => !alreadyAdded.has(s.toLowerCase()));
+      }
+      const matches = skillSuggestions.filter(
+        (s) => s.toLowerCase().includes(query) && !alreadyAdded.has(s.toLowerCase())
+      );
+      // Append "Add new skill" option if the exact typed value isn't already in suggestions/added
+      const exactMatch = skillSuggestions.some((s) => s.toLowerCase() === query);
+      const alreadyInSkills = skills.some((s) => s.toLowerCase() === query);
+      if (!exactMatch && !alreadyInSkills && skillInput.trim()) {
+        matches.push(`__new__:${skillInput.trim()}`);
+      }
+      return matches;
+    }
+
+    function commitSkill(value) {
+      const skill = value.startsWith("__new__:") ? value.slice(8) : value;
+      const trimmed = skill.trim();
+      if (!trimmed || skills.includes(trimmed)) return;
+      setSkills([...skills, trimmed]);
+      // If it's genuinely new, add it to the local suggestion pool too
+      if (!skillSuggestions.includes(trimmed)) {
+        setSkillSuggestions((prev) => [...prev, trimmed].sort((a, b) => a.localeCompare(b)));
+      }
+      setSkillInput("");
+      setShowSkillDropdown(false);
+      setActiveSuggestionIndex(-1);
+      clearError("skills");
+    }
 
     function clearError(field) {
       setErrors((prev) => {
@@ -187,26 +271,39 @@ function SurveyContent() {
     }
 
     function handleAddSkill(e) {
-      if (e.key === "Backspace" && skillInput === "" && skills.length > 0) {
-        setSkills(skills.slice(0, -1));
+      const filtered = getFilteredSkillSuggestions();
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setActiveSuggestionIndex((i) => Math.min(i + 1, filtered.length - 1));
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setActiveSuggestionIndex((i) => Math.max(i - 1, 0));
+        return;
+      }
+      if (e.key === "Escape") {
+        setShowSkillDropdown(false);
+        setActiveSuggestionIndex(-1);
         return;
       }
 
       if (e.key === "Enter" || e.key === ",") {
         e.preventDefault();
-
-        let newSkill = skillInput.trim();
-
-        // remove trailing comma if it exists
-        if (newSkill.endsWith(",")) {
-          newSkill = newSkill.slice(0, -1).trim();
+        // If a suggestion is highlighted, select it
+        if (activeSuggestionIndex >= 0 && filtered[activeSuggestionIndex]) {
+          commitSkill(filtered[activeSuggestionIndex]);
+          return;
         }
+        // Otherwise commit whatever is typed
+        const trimmed = skillInput.trim().replace(/,$/, "");
+        if (trimmed) commitSkill(trimmed);
+        return;
+      }
 
-        if (newSkill !== "" && !skills.includes(newSkill)) {
-          setSkills([...skills, newSkill]);
-        }
-
-        setSkillInput("");
+      if (e.key === "Backspace" && skillInput === "" && skills.length > 0) {
+        setSkills(skills.slice(0, -1));
       }
     }
 
@@ -393,35 +490,83 @@ function SurveyContent() {
     
                   {/* SKILLS */}
                   {(q.type === "skills" || q.type === "skill-tag" || q.id === "skills") && (
-                    <div
-                      className={`w-full border rounded-lg p-2 flex flex-wrap gap-2 transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${errors[q.id] ? "border-red-500" : "border-input bg-background"}`}
-                    >
-                      {skills.map((skill, index) => (
-                        <div
-                          key={index}
-                          className="bg-primary/10 text-primary text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1.5"
-                        >
-                          {skill}
-                          <button
-                            type="button"
-                            className="text-primary/70 hover:text-primary transition-colors focus:outline-none"
-                            onClick={() => removeSkill(index)}
+                    <div className="relative">
+                      <div
+                        className={`w-full border rounded-lg p-2 flex flex-wrap gap-2 transition-colors focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2 ${errors[q.id] ? "border-red-500" : "border-input bg-background"}`}
+                        onClick={() => skillInputRef.current?.focus()}
+                      >
+                        {skills.map((skill, index) => (
+                          <div
+                            key={index}
+                            className="bg-primary/10 text-primary text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1.5"
                           >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
+                            {skill}
+                            <button
+                              type="button"
+                              className="text-primary/70 hover:text-primary transition-colors focus:outline-none"
+                              onClick={(e) => { e.stopPropagation(); removeSkill(index); }}
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
 
-                      <input
-                        className="flex-1 bg-transparent border-none outline-none min-w-[150px] text-sm py-1 placeholder:text-muted-foreground"
-                        placeholder="Type a skill, press Enter or comma..."
-                        value={skillInput}
-                        onChange={(e) => {
-                          setSkillInput(e.target.value);
-                          clearError("skills");
-                        }}
-                        onKeyDown={handleAddSkill}
-                      />
+                        <input
+                          ref={skillInputRef}
+                          className="flex-1 bg-transparent border-none outline-none min-w-[150px] text-sm py-1 placeholder:text-muted-foreground"
+                          placeholder={skills.length === 0 ? "Type a skill or pick from suggestions…" : "Add another skill…"}
+                          value={skillInput}
+                          onChange={(e) => {
+                            setSkillInput(e.target.value);
+                            setShowSkillDropdown(true);
+                            setActiveSuggestionIndex(-1);
+                            clearError("skills");
+                          }}
+                          onFocus={() => setShowSkillDropdown(true)}
+                          onKeyDown={handleAddSkill}
+                          autoComplete="off"
+                        />
+                      </div>
+
+                      {/* Autocomplete dropdown */}
+                      {showSkillDropdown && getFilteredSkillSuggestions().length > 0 && (
+                        <div
+                          ref={skillDropdownRef}
+                          className="absolute z-50 top-full left-0 mt-1 w-full bg-card border border-border rounded-md shadow-lg max-h-52 overflow-y-auto"
+                        >
+                          {getFilteredSkillSuggestions().map((s, i) => {
+                            const isNew = s.startsWith("__new__:");
+                            const label = isNew ? s.slice(8) : s;
+                            return (
+                              <button
+                                key={s}
+                                type="button"
+                                ref={i === activeSuggestionIndex ? (el) => el?.scrollIntoView({ block: "nearest" }) : null}
+                                className={`w-full text-left px-4 py-2 text-sm flex items-center gap-2 transition-colors outline-none
+                                  ${i === activeSuggestionIndex ? "bg-primary/10 text-primary" : "hover:bg-muted text-foreground"}`}
+                                onMouseDown={(e) => { e.preventDefault(); commitSkill(s); }}
+                                onMouseEnter={() => setActiveSuggestionIndex(i)}
+                              >
+                                {isNew ? (
+                                  <>
+                                    <span className="text-xs font-semibold px-1.5 py-0.5 rounded bg-primary/15 text-primary">+ New</span>
+                                    <span className="font-medium">{label}</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <span className="w-2 h-2 rounded-full bg-primary/40 shrink-0" />
+                                    <span>{label}</span>
+                                  </>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+
+                      {errors[q.id] && (
+                        <p className="mt-1 text-sm text-red-600">{errors[q.id]}</p>
+                      )}
                     </div>
                   )}
 
