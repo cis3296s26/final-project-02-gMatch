@@ -533,6 +533,26 @@ export default function DashboardPage() {
       return;
     }
 
+    if (students && Array.isArray(students) && students.length === 0) {
+      setStatusMessage("There are no students in the workspace. You need at least 2 students to generate teams.");
+      return;
+    }
+
+    if (students && Array.isArray(students) && students.length === 1) {
+      console.log(students);
+      setStatusMessage("There is only one student in the workspace. You need at least 2 students to generate teams.");
+      return;
+    }
+
+    // ensure all students have availability and skills arrays (strategies expect this shape). If not, let the user know that one or more students are missing this data
+    const studentsMissingData = students.filter((s) => !s.availability || !s.skills);
+    if (studentsMissingData.length > 0) {
+      setStatusMessage(
+        `Please ensure all students have availability and skills arrays. The following students are missing this data: ${studentsMissingData.map((s) => s.name).join(", ")}`
+      );
+      return;
+    }
+
     const strategyInstance = StrategyFactory.create(strategy);
     const generatedTeams = strategyInstance.generate(students, Number(minSize));
     const actionLabel = hasGenerated ? "regenerated" : "generated";
