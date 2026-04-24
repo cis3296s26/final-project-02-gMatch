@@ -456,7 +456,7 @@ function SurveyContent() {
                   {q.type === "multiple-choice" && (
                     <>
                     <select
-                      className={`w-full border rounded-lg p-2.5 outline-none transition-colors focus:ring-2 focus:ring-primary ${errors[q.id] ? "border-red-500" : "bg-card border-border"}`}
+                      className={`w-full border rounded-lg p-2.5 outline-none transition-colors focus:ring-2 focus:ring-primary bg-background text-foreground dark:bg-background dark:text-foreground dark:border-border ${errors[q.id] ? "border-red-500" : "border-border"}`}
                       value={textAnswers[q.id] || ""}
                       onChange={(e) => {
                         setTextAnswers({ ...textAnswers, [q.id]: e.target.value });
@@ -603,8 +603,7 @@ function SurveyContent() {
 
                       {/* Day selector */}
                       <select
-                        className={`w-auto border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
-                        value={day}
+                        className={`w-auto border rounded p-2 bg-background text-foreground dark:bg-background dark:text-foreground dark:border-border ${errors.availability ? "border-red-500" : "border-border"}`}
                         onChange={(e) => {
                           setDay(e.target.value);
                           clearError("availability");
@@ -623,7 +622,7 @@ function SurveyContent() {
                       {/* Start time */}
                       <input
                         type="time"
-                        className={`w-auto border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
+                        className={`w-auto border rounded p-2 bg-background text-foreground dark:bg-background dark:text-foreground dark:border-border ${errors.availability ? "border-red-500" : "border-border"}`}
                         value={startTime}
                         onChange={(e) => {
                           setStartTime(e.target.value);
@@ -634,7 +633,7 @@ function SurveyContent() {
                       {/* End time */}
                       <input
                         type="time"
-                        className={`w-auto border rounded p-2 ${errors.availability ? "border-red-500" : ""}`}
+                        className={`w-auto border rounded p-2 bg-background text-foreground dark:bg-background dark:text-foreground dark:border-border ${errors.availability ? "border-red-500" : "border-border"}`}
                         value={endTime}
                         onChange={(e) => {
                           setEndTime(e.target.value);
